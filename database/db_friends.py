@@ -33,7 +33,7 @@ async def get_friends(user_id: str):
             """
             SELECT friend_id, role FROM friends
             WHERE user_id = $1
-            ORDER BY added_at
+            ORDER BY created_at DESC
             """,
             user_id
         )
@@ -222,7 +222,7 @@ async def get_user_id_by_username(username: str) -> str | None:
 
         result = await conn.fetchval(
             """
-            SELECT telegram_id FROM users
+            SELECT user_id FROM users
             WHERE LOWER(username) = LOWER($1)
             """,
             username
@@ -238,9 +238,9 @@ async def get_display_name(user_id: str) -> str:
     try:
         row = await conn.fetchrow(
             """
-            SELECT COALESCE(username, telegram_id) AS display_name
+            SELECT COALESCE(username, user_id) AS display_name
             FROM users
-            WHERE telegram_id = $1
+            WHERE user_id = $1
             """,
             user_id
         )
