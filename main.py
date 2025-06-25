@@ -1,4 +1,5 @@
 import logging
+import os
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ContextTypes
 
@@ -7,13 +8,13 @@ from telegram_bot.profile_handlers.profile_handlers import handle_profile_naviga
 from telegram_bot.friends_handlers.friends_handlers import handle_friends_navigation
 from config import TELEGRAM_TOKEN
 
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def main():
-    print("🚀 Запуск Telegram-бота...", flush=True)
-
+def setup_application():
     application = Application.builder().token(TELEGRAM_TOKEN).build()
 
     # Старт
@@ -26,7 +27,7 @@ def main():
         handle_menu_choice
     ))
 
-    # ✅ Универсальный навигационный хендлер
+    # Универсальный навигационный хендлер
     async def handle_mode_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
         mode = context.user_data.get("mode")
         print(f"[ROUTER] mode = {mode}")
@@ -45,12 +46,27 @@ def main():
         else:
             await update.message.reply_text("⚠ Неизвестный режим.")
 
-    # Хендлер для всех текстов и фото
     application.add_handler(MessageHandler(filters.TEXT | filters.PHOTO, handle_mode_navigation))
 
-    print("✅ Бот запущен и слушает Telegram...", flush=True)
-    application.run_polling()
+    return application
 
 
 if __name__ == "__main__":
-    main()
+    print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
+
+    import asyncio
+
+    async def run():
+        app = setup_application()
+        await app.initialize()
+        await app.bot.set_webhook(url=WEBHOOK_URL)
+        await app.start()
+        await app.updater.start_webhook(
+            listen="0.0.0.0",
+            port=8000,
+            url_path="/",
+            webhook_url=WEBHOOK_URL
+        )
+        await app.updater.idle()
+
+    asyncio.run(run())
