@@ -59,6 +59,17 @@ async def run():
         webhook_path="/webhook"
     )
 
+<<<<<<< HEAD
+=======
+# Установка webhook и запуск
+application.run_webhook(
+    listen="0.0.0.0",
+    port=int(os.environ.get("PORT", 8000)),
+    webhook_url=WEBHOOK_URL + "/webhook"
+)
+>>>>>>> 8e1e0bb (fix: удалён unsupported аргумент webhook_path)
+
+
 
 if __name__ == "__main__":
     import asyncio
