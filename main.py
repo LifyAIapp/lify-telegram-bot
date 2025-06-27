@@ -39,10 +39,8 @@ def setup_application():
 
         if mode == "profile":
             await handle_profile_navigation(update, context)
-
         elif mode == "friends":
             await handle_friends_navigation(update, context)
-
         else:
             await update.message.reply_text("⚠ Неизвестный режим.")
 
@@ -58,15 +56,11 @@ if __name__ == "__main__":
 
     async def run():
         app = setup_application()
-        await app.initialize()
         await app.bot.set_webhook(url=WEBHOOK_URL)
-        await app.start()
-        await app.updater.start_webhook(
+        await app.run_webhook(
             listen="0.0.0.0",
-            port=8000,
-            url_path="/",
+            port=int(os.environ.get("PORT", 8000)),
             webhook_url=WEBHOOK_URL
         )
-        await app.updater.idle()
 
     asyncio.run(run())
