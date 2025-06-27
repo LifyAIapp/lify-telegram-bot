@@ -57,13 +57,7 @@ async def main():
     await app.initialize()
     await app.bot.set_webhook(url=WEBHOOK_URL)
     await app.start()
-    await app.updater.start_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 8000)),
-        url_path="/",
-        webhook_url=WEBHOOK_URL,
-    )
-    await app.updater.idle()
+    await app.wait_until_closed()  # <-- правильная замена app.updater.idle()
 
 
 if __name__ == "__main__":
