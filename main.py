@@ -8,7 +8,7 @@ from telegram.ext import (
 from telegram_bot.main_menu_handlers.main_menu import welcome, start, handle_menu_choice
 from telegram_bot.profile_handlers.profile_handlers import handle_profile_navigation
 from telegram_bot.friends_handlers.friends_handlers import handle_friends_navigation
-from config import TELEGRAM_TOKEN, WEBHOOK_URL
+from config import TELEGRAM_TOKEN
 
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
