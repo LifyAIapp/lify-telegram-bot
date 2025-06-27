@@ -1,7 +1,7 @@
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from telegram_bot.utils.context_cleanup import clear_friends_context
-from database.db_friends import get_friends
+from database.db_friends import get_friends, get_display_name  # ⬅ добавлен get_display_name
 from telegram_bot.friends_handlers.friends_info import show_friend_info
 from telegram_bot.friends_handlers.friends_creation import start_friend_addition, handle_friend_creation
 from telegram_bot.friends_handlers.friends_deletion import handle_friend_deletion
@@ -30,9 +30,14 @@ def build_friend_action_keyboard(friend_name):
 
 
 # 📂 Меню друзей
+# 📂 Меню друзей
 async def show_friends_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     friends = await get_friends(user_id)
+
+    # ✅ Добавляем display_name каждому другу
+    for friend in friends:
+        friend["display_name"] = await get_display_name(friend["friend_id"])
 
     clear_friends_context(context)  # ← безопасная очистка, mode сохраняется
     context.user_data["friends"] = friends
