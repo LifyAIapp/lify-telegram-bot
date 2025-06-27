@@ -57,8 +57,20 @@ async def main():
     await app.initialize()
     await app.bot.set_webhook(url=WEBHOOK_URL)
     await app.start()
-    await app.wait_until_closed()  # <-- правильная замена app.updater.idle()
+
+    await app.updater.start_webhook(
+        listen="0.0.0.0",
+        port=int(os.environ.get("PORT", 8000)),
+        url_path="/",
+        webhook_url=WEBHOOK_URL,
+    )
+
+    # Поддерживаем приложение в живом состоянии
+    await asyncio.Event().wait()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        print(f"🔥 Ошибка запуска: {e}")
