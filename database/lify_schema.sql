@@ -1,5 +1,15 @@
--- 0002_create_user_profile_sections.sql --
--- Создание таблицы разделов профиля пользователя с поддержкой иерархии
+-- === Таблица пользователей ===
+DROP TABLE IF EXISTS users CASCADE;
+
+CREATE TABLE users (
+    user_id TEXT PRIMARY KEY,
+    username TEXT,
+    display_name TEXT
+);
+
+-- === Разделы профиля с иерархией ===
+DROP TABLE IF EXISTS user_profile_sections CASCADE;
+
 CREATE TABLE user_profile_sections (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
@@ -8,13 +18,10 @@ CREATE TABLE user_profile_sections (
     parent_section_id INTEGER REFERENCES user_profile_sections(id) ON DELETE CASCADE
 );
 
--- Вставка дефолтных разделов и подразделов
+-- 🔧 Вставка дефолтных разделов и подразделов
 -- Общее
 INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
-('default', 'Общее', '👤', NULL);
-
--- Подразделы Общее
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
+('default', 'Общее', '👤', NULL),
 ('default', 'Возраст', '📅', 1),
 ('default', 'Пол', '🚻', 1),
 ('default', 'Национальность', '🌍', 1),
@@ -25,35 +32,23 @@ INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_
 ('default', 'Размер обуви', '👟', 1),
 ('default', 'Размер одежды (верх)', '👕', 1),
 ('default', 'Размер одежды (низ)', '👖', 1),
-('default', 'Размер головного убора', '🧢', 1);
+('default', 'Размер головного убора', '🧢', 1),
 
 -- Кино
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
-('default', 'Кино', '🎬', NULL);
-
--- Подразделы Кино
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
+('default', 'Кино', '🎬', NULL),
 ('default', 'Любимый жанр', '🎞️', 13),
 ('default', 'Любимый фильм', '🎥', 13),
 ('default', 'Любимые актеры/актрисы', '⭐', 13),
-('default', 'Любимый режиссер', '🎬', 13);
+('default', 'Любимый режиссер', '🎬', 13),
 
 -- Музыка
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
-('default', 'Музыка', '🎵', NULL);
-
--- Подразделы Музыка
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
+('default', 'Музыка', '🎵', NULL),
 ('default', 'Любимая песня', '🎶', 18),
 ('default', 'Любимая музыкальная группа или исполнитель', '🎤', 18),
-('default', 'Предпочитаемые жанры', '🎧', 18);
+('default', 'Предпочитаемые жанры', '🎧', 18),
 
 -- Еда и напитки
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
-('default', 'Еда и напитки', '🍔', NULL);
-
--- Подразделы Еда и напитки
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
+('default', 'Еда и напитки', '🍔', NULL),
 ('default', 'Любимая кухня', '🍱', 22),
 ('default', 'Любимое блюдо', '🍲', 22),
 ('default', 'Любимые фрукты ягоды', '🍓', 22),
@@ -61,26 +56,18 @@ INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_
 ('default', 'Любимые сладости', '🍰', 22),
 ('default', 'Предпочтения по диете', '🥗', 22),
 ('default', 'Любимый напиток', '🥤', 22),
-('default', 'Излюбленные рестораны/кафе', '🍽️', 22);
+('default', 'Излюбленные рестораны/кафе', '🍽️', 22),
 
 -- Уход
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
-('default', 'Уход', '🧴', NULL);
-
--- Подразделы Уход
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
+('default', 'Уход', '🧴', NULL),
 ('default', 'Волосы', '💇‍♀️', 31),
 ('default', 'Лицо', '🧖‍♀️', 31),
 ('default', 'Тело', '🛁', 31),
 ('default', 'Парфюм', '🌸', 31),
-('default', 'Бытовая химия и принадлежности', '🧼', 31);
+('default', 'Бытовая химия и принадлежности', '🧼', 31),
 
 -- Внешний вид
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
-('default', 'Внешний вид', '🧍', NULL);
-
--- Подразделы Внешний вид
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
+('default', 'Внешний вид', '🧍', NULL),
 ('default', 'Стиль', '🎩', 37),
 ('default', 'Головной убор', '🧢', 37),
 ('default', 'Верх', '👕', 37),
@@ -89,63 +76,71 @@ INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_
 ('default', 'Обувь', '👟', 37),
 ('default', 'Верхняя одежда', '🧥', 37),
 ('default', 'Аксессуары', '⌚', 37),
-('default', 'Сумки', '👜', 37);
+('default', 'Сумки', '👜', 37),
 
 -- Хобби и интересы
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
-('default', 'Хобби и интересы', '🎯', NULL);
-
--- Подразделы Хобби
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
+('default', 'Хобби и интересы', '🎯', NULL),
 ('default', 'Хобби', '⚽', 47),
 ('default', 'Выставки, музеи, театр, концерты', '🎭', 47),
 ('default', 'Семинары, форумы, мастерклассы', '🧠', 47),
-('default', 'Любимые книги и авторы', '📖', 47);
+('default', 'Любимые книги и авторы', '📖', 47),
 
 -- Путешествия
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
-('default', 'Путешествия', '🌍', NULL);
-
--- Подраздел Путешествий
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
-('default', 'Места', '🏞️', 52);
+('default', 'Путешествия', '🌍', NULL),
+('default', 'Места', '🏞️', 52),
 
 -- Здоровье и фитнес
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
-('default', 'Здоровье и фитнес', '💪', NULL);
-
--- Подразделы Здоровье
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
+('default', 'Здоровье и фитнес', '💪', NULL),
 ('default', 'Предпочитаемая физическая активность', '🏃', 54),
-('default', 'Методы расслабления', '🧘', 54);
+('default', 'Методы расслабления', '🧘', 54),
 
 -- Профессиональные интересы
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
-('default', 'Профессиональные интересы', '💼', NULL);
+('default', 'Профессиональные интересы', '💼', NULL),
 
 -- Цветы
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
 ('default', 'Цветы', '🌹', NULL);
 
+-- === Таблица initialized_users ===
+DROP TABLE IF EXISTS initialized_users;
 
--- 003_create_friends_and_access_rights.sql --
--- Таблица "friends": связи между пользователями + роли
-CREATE TABLE IF NOT EXISTS friends (
-    id SERIAL PRIMARY KEY,
-    user_id TEXT NOT NULL,         -- кто добавил
-    friend_id TEXT NOT NULL,       -- кого добавили
-    role TEXT,                     -- роль (жена, друг и т.д.)
-    created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(user_id, friend_id)     -- чтобы не было дубликатов
+CREATE TABLE initialized_users (
+    user_id TEXT PRIMARY KEY
 );
 
--- Таблица "access_rights": видимость конкретных разделов или полей
-CREATE TABLE IF NOT EXISTS access_rights (
+-- === Таблица friends ===
+DROP TABLE IF EXISTS friends;
+
+CREATE TABLE friends (
     id SERIAL PRIMARY KEY,
-    user_id TEXT NOT NULL,         -- чей профиль
-    friend_id TEXT NOT NULL,       -- кто смотрит
-    section_name TEXT NOT NULL,    -- раздел или поле
-    is_allowed BOOLEAN NOT NULL,   -- доступ разрешён или нет
+    user_id TEXT NOT NULL,
+    friend_user_id TEXT NOT NULL,
+    role TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(user_id, friend_id, section_name)
+    UNIQUE(user_id, friend_user_id)
+);
+
+-- === Таблица access_rights ===
+DROP TABLE IF EXISTS access_rights;
+
+CREATE TABLE access_rights (
+    id SERIAL PRIMARY KEY,
+    owner_user_id TEXT NOT NULL,
+    viewer_user_id TEXT NOT NULL,
+    section_name TEXT NOT NULL,
+    is_allowed BOOLEAN NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(owner_user_id, viewer_user_id, section_name)
+);
+
+-- === Таблица объектов в разделах профиля ===
+DROP TABLE IF EXISTS user_profile_objects;
+
+CREATE TABLE user_profile_objects (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    section_id INTEGER NOT NULL REFERENCES user_profile_sections(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT,
+    photo_url TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
 );
