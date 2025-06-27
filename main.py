@@ -1,10 +1,8 @@
 import logging
 import os
 from telegram import Update
-from telegram.ext import (
-    Application, MessageHandler, filters,
-    CommandHandler, ContextTypes
-)
+from telegram.ext import Application, MessageHandler, filters, CommandHandler, ContextTypes
+
 from telegram_bot.main_menu_handlers.main_menu import welcome, start, handle_menu_choice
 from telegram_bot.profile_handlers.profile_handlers import handle_profile_navigation
 from telegram_bot.friends_handlers.friends_handlers import handle_friends_navigation
@@ -16,9 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def run():
-    print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
-
+def setup_application():
     application = Application.builder().token(TELEGRAM_TOKEN).build()
 
     # Старт
@@ -43,22 +39,34 @@ async def run():
 
         if mode == "profile":
             await handle_profile_navigation(update, context)
+
         elif mode == "friends":
             await handle_friends_navigation(update, context)
+
         else:
             await update.message.reply_text("⚠ Неизвестный режим.")
 
     application.add_handler(MessageHandler(filters.TEXT | filters.PHOTO, handle_mode_navigation))
 
-    # Установка webhook и запуск
-    await application.bot.set_webhook(url=WEBHOOK_URL)
-    await application.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 8000)),
-        webhook_url=WEBHOOK_URL
-    )
+    return application
 
 
 if __name__ == "__main__":
+    print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
+
     import asyncio
+
+    async def run():
+        app = setup_application()
+        await app.initialize()
+        await app.bot.set_webhook(url=WEBHOOK_URL)
+        await app.start()
+        await app.updater.start_webhook(
+            listen="0.0.0.0",
+            port=8000,
+            url_path="/",
+            webhook_url=WEBHOOK_URL
+        )
+        await app.updater.idle()
+
     asyncio.run(run())
