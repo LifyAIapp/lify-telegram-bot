@@ -33,11 +33,7 @@ async def get_friends(user_id: str):
             """
             SELECT friend_id, role FROM friends
             WHERE user_id = $1
-<<<<<<< HEAD
-            ORDER BY created_at DESC
-=======
             ORDER BY created_at
->>>>>>> d344745 (🐛 Fix: заменён ORDER BY added_at на ORDER BY created_at в get_friends)
             """,
             user_id
         )
