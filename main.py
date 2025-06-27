@@ -51,11 +51,11 @@ async def run():
     application.add_handler(MessageHandler(filters.TEXT | filters.PHOTO, handle_mode_navigation))
 
     # Установка webhook и запуск
-    await application.bot.set_webhook(url=WEBHOOK_URL + "/webhook")
+    await application.bot.set_webhook(url=WEBHOOK_URL)
     await application.run_webhook(
         listen="0.0.0.0",
         port=int(os.environ.get("PORT", 8000)),
-        webhook_url=WEBHOOK_URL + "/webhook"
+        webhook_url=WEBHOOK_URL
     )
 
 
