@@ -213,7 +213,7 @@ async def insert_object(user_id: str, section_id: int, name: str, description: s
     try:
         await conn.execute(
             """
-            INSERT INTO user_profile_objects (user_id, section_id, name, description, photo_file_id)
+            INSERT INTO user_profile_objects (user_id, section_id, object_name, description, photo_file_id)
             VALUES ($1, $2, $3, $4, $5)
             """,
             user_id, section_id, name, description, photo_file_id
@@ -227,7 +227,7 @@ async def fetch_objects_by_section(user_id: str, section_id: int):
     try:
         rows = await conn.fetch(
             """
-            SELECT id, name, description, photo_file_id
+            SELECT id, object_name, description, photo_file_id
             FROM user_profile_objects
             WHERE user_id = $1 AND section_id = $2
             ORDER BY created_at
@@ -237,7 +237,7 @@ async def fetch_objects_by_section(user_id: str, section_id: int):
         return [
             {
                 "id": row["id"],
-                "name": row["name"],
+                "name": row["object_name"],
                 "description": row["description"],
                 "photo_file_id": row["photo_file_id"]
             }
