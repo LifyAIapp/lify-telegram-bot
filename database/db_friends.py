@@ -33,7 +33,7 @@ async def get_friends(user_id: str):
             """
             SELECT friend_id, role FROM friends
             WHERE user_id = $1
-            ORDER BY added_at
+            ORDER BY created_at
             """,
             user_id
         )
