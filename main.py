@@ -61,11 +61,11 @@ async def main():
     )
 
 
-# Используем event loop, подходящий даже для Render
+# ✅ Без run(), безопасный запуск в Render и Jupyter-средах
 if __name__ == "__main__":
     try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(main())
+        loop = asyncio.get_event_loop()
+        loop.create_task(main())
+        loop.run_forever()
     except Exception as e:
         print(f"🔥 Ошибка запуска: {e}")
