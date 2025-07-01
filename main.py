@@ -59,9 +59,11 @@ if __name__ == "__main__":
         await app.run_webhook(
             listen="0.0.0.0",
             port=int(os.environ.get("PORT", 8000)),
-            webhook_url=WEBHOOK_URL
+            webhook_url=WEBHOOK_URL,
+            # Добавь close_loop=False, чтобы не закрывать event loop
+            close_loop=False
         )
-        # Для корректного ожидания завершения (бот будет работать постоянно)
-        await app.wait_closed()
+        # await app.wait_closed() — можно убрать, т.к. run_webhook ждет закрытия
+        # await app.wait_closed()
 
-    asyncio.run(main())
+    asyncio.get_event_loop().run_until_complete(main())
