@@ -1,3 +1,4 @@
+
 -- === Таблица пользователей ===
 DROP TABLE IF EXISTS users CASCADE;
 
@@ -139,7 +140,7 @@ CREATE TABLE user_profile_objects (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
     section_id INTEGER NOT NULL REFERENCES user_profile_sections(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
+    object_name TEXT NOT NULL,
     description TEXT,
     photo_url TEXT,
     created_at TIMESTAMP DEFAULT NOW()
