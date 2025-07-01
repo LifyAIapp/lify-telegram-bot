@@ -1,5 +1,6 @@
 import logging
 import os
+import asyncio
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ContextTypes
 
@@ -30,8 +31,8 @@ def setup_application():
     # Универсальный навигационный хендлер
     async def handle_mode_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
         mode = context.user_data.get("mode")
-        print(f"[ROUTER] mode = {mode}")
-        print(f"[ROUTER] user_data = {context.user_data}")
+        logger.info(f"[ROUTER] mode = {mode}")
+        logger.info(f"[ROUTER] user_data = {context.user_data}")
 
         if not mode:
             await update.message.reply_text("❗ Пожалуйста, выберите раздел из главного меню.")
@@ -50,20 +51,27 @@ def setup_application():
 
 
 if __name__ == "__main__":
-    import asyncio
+    print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
+    app = setup_application()
 
-    async def main():
-        print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
-        app = setup_application()
+    async def set_webhook_and_run():
         await app.bot.set_webhook(url=WEBHOOK_URL)
         await app.run_webhook(
             listen="0.0.0.0",
             port=int(os.environ.get("PORT", 8000)),
             webhook_url=WEBHOOK_URL,
-            # Добавь close_loop=False, чтобы не закрывать event loop
-            close_loop=False
+            close_loop=False  # Не закрываем event loop, чтобы избежать ошибки
         )
-        # await app.wait_closed() — можно убрать, т.к. run_webhook ждет закрытия
-        # await app.wait_closed()
 
-    asyncio.get_event_loop().run_until_complete(main())
+    # Проверяем, запущен ли уже event loop (Render может запускать его сам)
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        # Цикл не запущен — запускаем
+        asyncio.run(set_webhook_and_run())
+    else:
+        # Цикл уже есть — создаём таск и держим процесс живым
+        asyncio.create_task(set_webhook_and_run())
+        import time
+        while True:
+            time.sleep(3600)
