@@ -30,8 +30,8 @@ def setup_application():
     # Универсальный навигационный хендлер
     async def handle_mode_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
         mode = context.user_data.get("mode")
-        logger.info(f"[ROUTER] mode = {mode}")
-        logger.info(f"[ROUTER] user_data = {context.user_data}")
+        print(f"[ROUTER] mode = {mode}")
+        print(f"[ROUTER] user_data = {context.user_data}")
 
         if not mode:
             await update.message.reply_text("❗ Пожалуйста, выберите раздел из главного меню.")
@@ -50,10 +50,18 @@ def setup_application():
 
 
 if __name__ == "__main__":
-    print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
-    app = setup_application()
-    app.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 8000)),
-        webhook_url=WEBHOOK_URL,
-    )
+    import asyncio
+
+    async def main():
+        print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
+        app = setup_application()
+        await app.bot.set_webhook(url=WEBHOOK_URL)
+        await app.run_webhook(
+            listen="0.0.0.0",
+            port=int(os.environ.get("PORT", 8000)),
+            webhook_url=WEBHOOK_URL
+        )
+        # Для корректного ожидания завершения (бот будет работать постоянно)
+        await app.wait_closed()
+
+    asyncio.run(main())
