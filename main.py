@@ -53,19 +53,24 @@ def setup_application():
 async def main():
     print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
     app = setup_application()
+
+    await app.initialize()
     await app.bot.set_webhook(url=WEBHOOK_URL)
-    await app.run_webhook(
+    await app.start()
+
+    await app.updater.start_webhook(
         listen="0.0.0.0",
         port=int(os.environ.get("PORT", 8000)),
-        webhook_url=WEBHOOK_URL
+        url_path="/",
+        webhook_url=WEBHOOK_URL,
     )
 
+    # Поддерживаем приложение в живом состоянии
+    await asyncio.Event().wait()
 
-# Используем event loop, подходящий даже для Render
+
 if __name__ == "__main__":
     try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(main())
+        asyncio.run(main())
     except Exception as e:
         print(f"🔥 Ошибка запуска: {e}")
