@@ -20,7 +20,7 @@ def clear_friends_context(context):
     keys = [
         "state",
         "friends_state",
-        "selected_friend_id",
+        "selected_friend_user_id",
         "selected_friend_name",
         "friends"
     ]

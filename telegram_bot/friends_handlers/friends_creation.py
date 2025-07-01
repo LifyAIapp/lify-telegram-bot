@@ -42,7 +42,7 @@ async def handle_friend_creation(update: Update, context: ContextTypes.DEFAULT_T
             await update.message.reply_text("😅 Вы не можете добавить самого себя.")
             return True
 
-        context.user_data["pending_friend_id"] = target_user["user_id"]
+        context.user_data["pending_friend_user_id"] = target_user["user_id"]
         context.user_data["pending_friend_display_name"] = target_user["display_name"]
         context.user_data["state"] = "confirm_add_friend"
 
@@ -53,14 +53,14 @@ async def handle_friend_creation(update: Update, context: ContextTypes.DEFAULT_T
         return True
 
     elif state == "confirm_add_friend":
-        friend_id = context.user_data.get("pending_friend_id")
+        friend_user_id = context.user_data.get("pending_friend_user_id")
         display_name = context.user_data.get("pending_friend_display_name")
 
         if text == "✅ Добавить в друзья":
-            if await is_friend_exists(user_id, friend_id):
+            if await is_friend_exists(user_id, friend_user_id):
                 await update.message.reply_text("⚠️ Этот пользователь уже в списке друзей.")
             else:
-                await add_friend(user_id, friend_id, display_name)
+                await add_friend(user_id, friend_user_id, display_name)
                 await update.message.reply_text("✅ Друг успешно добавлен!")
             context.user_data.clear()
             return "refresh_friends"

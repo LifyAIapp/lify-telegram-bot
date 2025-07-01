@@ -9,13 +9,13 @@ from database.db_friends import (
 # Показывает список всех разделов с отметкой доступа
 async def handle_access_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
-    friend_id = context.user_data.get("selected_friend_id")
-    if not friend_id:
+    friend_user_id = context.user_data.get("selected_friend_user_id")
+    if not friend_user_id:
         await update.message.reply_text("⚠️ Не удалось определить друга.")
         return
 
     all_sections = await fetch_all_user_sections(user_id)
-    allowed_sections = await fetch_accessible_sections_for_friend(user_id, friend_id)
+    allowed_sections = await fetch_accessible_sections_for_friend(user_id, friend_user_id)
 
     buttons = []
     for section in all_sections:
@@ -38,7 +38,7 @@ async def handle_access_toggle(update: Update, context: ContextTypes.DEFAULT_TYP
         return False
 
     user_id = str(update.effective_user.id)
-    friend_id = context.user_data.get("selected_friend_id")
+    friend_user_id = context.user_data.get("selected_friend_user_id")
     text = update.message.text.strip()
 
     if text == "🔙 Назад":
@@ -51,7 +51,7 @@ async def handle_access_toggle(update: Update, context: ContextTypes.DEFAULT_TYP
     for section in all_sections:
         label = f"{section['emoji']} {section['name']}"
         if label == clean_text:
-            await toggle_access_to_section(user_id, friend_id, section["id"])
+            await toggle_access_to_section(user_id, friend_user_id, section["id"])
             return await handle_access_settings(update, context)
 
     await update.message.reply_text("⚠️ Не удалось распознать раздел.")

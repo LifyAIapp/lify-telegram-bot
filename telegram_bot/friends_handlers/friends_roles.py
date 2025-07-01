@@ -17,7 +17,7 @@ def build_role_selection_keyboard():
 async def handle_role_update(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
     user_id = str(update.effective_user.id)
-    friend_id = context.user_data.get("selected_friend_id")
+    friend_user_id = context.user_data.get("selected_friend_user_id")
 
     if context.user_data.get("state") == "awaiting_new_role":
         if text == "❌ Отмена":
@@ -26,8 +26,8 @@ async def handle_role_update(update: Update, context: ContextTypes.DEFAULT_TYPE)
             return "refresh_friend"
 
         if text in roles:
-            if friend_id:
-                await update_friend_role(user_id, friend_id, text)
+            if friend_user_id:
+                await update_friend_role(user_id, friend_user_id, text)
                 context.user_data.pop("state", None)
                 await update.message.reply_text(f"✅ Роль изменена на: {text}")
                 return "refresh_friend"

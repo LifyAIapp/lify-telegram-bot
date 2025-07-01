@@ -11,16 +11,16 @@ async def get_connection():
 # -------------------- FRIENDS --------------------
 
 # ✅ Добавить друга
-async def add_friend(user_id: str, friend_id: str, role: str = "друг"):
+async def add_friend(user_id: str, friend_user_id: str, role: str = "друг"):
     conn = await get_connection()
     try:
         await conn.execute(
             """
-            INSERT INTO friends (user_id, friend_id, role)
+            INSERT INTO friends (user_id, friend_user_id, role)
             VALUES ($1, $2, $3)
-            ON CONFLICT (user_id, friend_id) DO NOTHING
+            ON CONFLICT (user_id, friend_user_id) DO NOTHING
             """,
-            user_id, friend_id, role
+            user_id, friend_user_id, role
         )
     finally:
         await conn.close()
@@ -31,71 +31,71 @@ async def get_friends(user_id: str):
     try:
         rows = await conn.fetch(
             """
-            SELECT friend_id, role FROM friends
+            SELECT friend_user_id, role FROM friends
             WHERE user_id = $1
             """,
             user_id
         )
-        return [{"friend_id": row["friend_id"], "role": row["role"]} for row in rows]
+        return [{"friend_user_id": row["friend_user_id"], "role": row["role"]} for row in rows]
     finally:
         await conn.close()
 
 # ✅ Получить конкретного друга
-async def get_friend(user_id: str, friend_id: str):
+async def get_friend(user_id: str, friend_user_id: str):
     conn = await get_connection()
     try:
         row = await conn.fetchrow(
             """
             SELECT role FROM friends
-            WHERE user_id = $1 AND friend_id = $2
+            WHERE user_id = $1 AND friend_user_id = $2
             """,
-            user_id, friend_id
+            user_id, friend_user_id
         )
         if row:
-            return {"friend_id": friend_id, "role": row["role"]}
+            return {"friend_user_id": friend_user_id, "role": row["role"]}
         return None
     finally:
         await conn.close()
 
 # ✅ Проверить, есть ли друг
-async def is_friend_exists(user_id: str, friend_id: str) -> bool:
+async def is_friend_exists(user_id: str, friend_user_id: str) -> bool:
     conn = await get_connection()
     try:
         result = await conn.fetchval(
             """
             SELECT 1 FROM friends
-            WHERE user_id = $1 AND friend_id = $2
+            WHERE user_id = $1 AND friend_user_id = $2
             """,
-            user_id, friend_id
+            user_id, friend_user_id
         )
         return result is not None
     finally:
         await conn.close()
 
 # ✅ Изменить роль друга
-async def update_friend_role(user_id: str, friend_id: str, new_role: str):
+async def update_friend_role(user_id: str, friend_user_id: str, new_role: str):
     conn = await get_connection()
     try:
         await conn.execute(
             """
             UPDATE friends SET role = $1
-            WHERE user_id = $2 AND friend_id = $3
+            WHERE user_id = $2 AND friend_user_id = $3
             """,
-            new_role, user_id, friend_id
+            new_role, user_id, friend_user_id
         )
     finally:
         await conn.close()
 
 # ✅ Удалить друга
-async def delete_friend(user_id: str, friend_id: str):
+async def delete_friend(user_id: str, friend_user_id: str):
     conn = await get_connection()
     try:
         await conn.execute(
             """
             DELETE FROM friends
-            WHERE user_id = $1 AND friend_id = $2
+            WHERE user_id = $1 AND friend_user_id = $2
             """,
-            user_id, friend_id
+            user_id, friend_user_id
         )
     finally:
         await conn.close()

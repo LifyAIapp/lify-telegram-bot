@@ -104,7 +104,7 @@ async def handle_friends_navigation(update: Update, context: ContextTypes.DEFAUL
             return
 
         context.user_data["selected_friend_name"] = friend_name
-        context.user_data["selected_friend_id"] = friend["friend_id"]
+        context.user_data["selected_friend_user_id"] = friend["friend_user_id"]
         context.user_data["state"] = "friend_selected"
 
         await update.message.reply_text(
@@ -135,7 +135,7 @@ async def handle_friends_navigation(update: Update, context: ContextTypes.DEFAUL
     if text == "🔚 Назад":
         context.user_data.pop("state", None)
         context.user_data.pop("selected_friend_name", None)
-        context.user_data.pop("selected_friend_id", None)
+        context.user_data.pop("selected_friend_user_id", None)
         await show_friends_menu(update, context)
         return
 

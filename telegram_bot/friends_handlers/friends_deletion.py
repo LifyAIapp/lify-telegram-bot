@@ -15,11 +15,11 @@ async def handle_friend_deletion(update: Update, context: ContextTypes.DEFAULT_T
     state = context.user_data.get("state")
     
     if state == "awaiting_delete_confirmation":
-        friend_id = context.user_data.get("selected_friend_id")
+        friend_user_id = context.user_data.get("selected_friend_user_id")
         friend_name = context.user_data.get("selected_friend_name")
 
         if text == f"✅ Удалить {friend_name}":
-            await delete_friend(str(update.effective_user.id), friend_id)
+            await delete_friend(str(update.effective_user.id), friend_user_id)
             await update.message.reply_text(f"🗑 {friend_name} удалён из друзей.")
             context.user_data.clear()
             return "refresh_friends"
