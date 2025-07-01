@@ -14,7 +14,6 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 def setup_application():
     application = Application.builder().token(TELEGRAM_TOKEN).build()
 
@@ -31,8 +30,8 @@ def setup_application():
     # Универсальный навигационный хендлер
     async def handle_mode_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
         mode = context.user_data.get("mode")
-        print(f"[ROUTER] mode = {mode}")
-        print(f"[ROUTER] user_data = {context.user_data}")
+        logger.info(f"[ROUTER] mode = {mode}")
+        logger.info(f"[ROUTER] user_data = {context.user_data}")
 
         if not mode:
             await update.message.reply_text("❗ Пожалуйста, выберите раздел из главного меню.")
@@ -49,15 +48,16 @@ def setup_application():
 
     return application
 
-
 async def main():
-    print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
+    logger.info("🚀 Запуск Telegram-бота с Webhook...")
+
     app = setup_application()
 
     await app.initialize()
     await app.bot.set_webhook(url=WEBHOOK_URL)
     await app.start()
 
+    # Запуск webhook вручную через app.updater
     await app.updater.start_webhook(
         listen="0.0.0.0",
         port=int(os.environ.get("PORT", 8000)),
@@ -65,12 +65,12 @@ async def main():
         webhook_url=WEBHOOK_URL,
     )
 
-    # Поддерживаем приложение в живом состоянии
+    # Ждем бесконечно, чтобы бот не завершался
     await asyncio.Event().wait()
-
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except Exception as e:
+        logger.error(f"🔥 Ошибка запуска: {e}")
         print(f"🔥 Ошибка запуска: {e}")
