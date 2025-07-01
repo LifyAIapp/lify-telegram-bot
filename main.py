@@ -1,11 +1,10 @@
 import logging
 import os
-import asyncio
-import nest_asyncio
-
 from telegram import Update
-from telegram.ext import Application, MessageHandler, filters, CommandHandler, ContextTypes
-
+from telegram.ext import (
+    Application, MessageHandler, filters,
+    CommandHandler, ContextTypes
+)
 from telegram_bot.main_menu_handlers.main_menu import welcome, start, handle_menu_choice
 from telegram_bot.profile_handlers.profile_handlers import handle_profile_navigation
 from telegram_bot.friends_handlers.friends_handlers import handle_friends_navigation
@@ -16,7 +15,10 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def setup_application():
+
+async def run():
+    print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
+
     application = Application.builder().token(TELEGRAM_TOKEN).build()
 
     # Старт
@@ -48,30 +50,15 @@ def setup_application():
 
     application.add_handler(MessageHandler(filters.TEXT | filters.PHOTO, handle_mode_navigation))
 
-    return application
-
-
-async def main():
-    app = setup_application()
-    print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
-
-    await app.bot.set_webhook(url=WEBHOOK_URL)
-    await app.run_webhook(
+    # Установка webhook и запуск
+    await application.bot.set_webhook(url=WEBHOOK_URL + "/webhook")
+    await application.run_webhook(
         listen="0.0.0.0",
         port=int(os.environ.get("PORT", 8000)),
-        webhook_url=WEBHOOK_URL
+        webhook_url=WEBHOOK_URL + "/webhook"
     )
 
+
 if __name__ == "__main__":
-    try:
-        # Проверяем, есть ли уже запущенный event loop
-        asyncio.get_running_loop()
-    except RuntimeError:
-        # Если нет, запускаем новый цикл
-        asyncio.run(main())
-    else:
-        # Если есть, применяем nest_asyncio и запускаем цикл вручную
-        nest_asyncio.apply()
-        loop = asyncio.get_event_loop()
-        loop.create_task(main())
-        loop.run_forever()
+    import asyncio
+    asyncio.run(run())
