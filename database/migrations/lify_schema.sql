@@ -142,6 +142,6 @@ CREATE TABLE user_profile_objects (
     section_id INTEGER NOT NULL REFERENCES user_profile_sections(id) ON DELETE CASCADE,
     object_name TEXT NOT NULL,
     description TEXT,
-    photo_url TEXT,
+    photo_file_id TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
