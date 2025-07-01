@@ -27,6 +27,7 @@ def setup_application():
         handle_menu_choice
     ))
 
+    # Универсальный навигационный хендлер
     async def handle_mode_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
         mode = context.user_data.get("mode")
         logger.info(f"[ROUTER] mode = {mode}")
@@ -49,10 +50,20 @@ def setup_application():
 
 
 if __name__ == "__main__":
+    print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
     app = setup_application()
+
+    # Устанавливаем Webhook перед запуском
+    async def set_webhook():
+        await app.bot.set_webhook(WEBHOOK_URL)
+
+    import asyncio
+    asyncio.get_event_loop().run_until_complete(set_webhook())
+
+    # Запускаем Webhook (без asyncio.run!)
     app.run_webhook(
         listen="0.0.0.0",
         port=int(os.environ.get("PORT", 8000)),
         webhook_url=WEBHOOK_URL,
-        close_loop=False  # Не закрывать существующий event loop
+        close_loop=False  # важно!
     )
