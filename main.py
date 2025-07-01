@@ -1,6 +1,5 @@
 import logging
 import os
-import asyncio
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ContextTypes
 
@@ -13,7 +12,6 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 def setup_application():
     application = Application.builder().token(TELEGRAM_TOKEN).build()
@@ -50,27 +48,30 @@ def setup_application():
     return application
 
 
-async def main():
-    print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
+if __name__ == "__main__":
+    import asyncio
+
     app = setup_application()
 
-    await app.initialize()
-    await app.bot.set_webhook(url=WEBHOOK_URL)
-    await app.start()
+    # Установка webhook
+    async def start_bot():
+        print("🚀 Запуск Telegram-бота с Webhook...", flush=True)
+        await app.bot.set_webhook(url=WEBHOOK_URL)
+        await app.run_webhook(
+            listen="0.0.0.0",
+            port=int(os.environ.get("PORT", 8000)),
+            webhook_url=WEBHOOK_URL
+        )
 
-    await app.updater.start_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 8000)),
-        url_path="/",
-        webhook_url=WEBHOOK_URL,
-    )
-
-    # Поддерживаем приложение в живом состоянии
-    await asyncio.Event().wait()
-
-
-if __name__ == "__main__":
+    # Запускаем без asyncio.run, если цикл уже есть
     try:
-        asyncio.run(main())
-    except Exception as e:
-        print(f"🔥 Ошибка запуска: {e}")
+        asyncio.get_running_loop()
+    except RuntimeError:
+        # Цикл не запущен, запускаем
+        asyncio.run(start_bot())
+    else:
+        # Цикл запущен, запускаем задачу
+        import nest_asyncio
+        nest_asyncio.apply()  # если нужно, разрешить повторный запуск цикла
+        asyncio.create_task(start_bot())
+        # Иначе бот не запустится корректно в уже работающем цикле.
