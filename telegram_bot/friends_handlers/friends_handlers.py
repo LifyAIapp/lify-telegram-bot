@@ -1,4 +1,4 @@
- from telegram import Update, ReplyKeyboardMarkup
+from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from telegram_bot.utils.context_cleanup import clear_friends_context
 from database.db_friends import get_friends, get_display_name
