@@ -136,7 +136,7 @@ async def delete_section_by_name(user_id: str, section_name: str, parent_id: int
     try:
         async with conn.transaction():
             # Получаем ID нужного раздела/подраздела
-            section_id = await conn.fetchval(
+            section_name = await conn.fetchval(
                 """
                 SELECT id FROM user_profile_sections
                 WHERE user_id = $1 AND section_name = $2
@@ -145,14 +145,14 @@ async def delete_section_by_name(user_id: str, section_name: str, parent_id: int
                 user_id, section_name, parent_id
             )
 
-            if section_id:
+            if section_name:
                 # Удаляем все вложенные подразделы (если это корневой)
                 await conn.execute(
                     """
                     DELETE FROM user_profile_sections
                     WHERE parent_section_id = $1 AND user_id = $2
                     """,
-                    section_id, user_id
+                    section_name, user_id
                 )
 
                 # Удаляем сам раздел / подраздел
@@ -161,7 +161,7 @@ async def delete_section_by_name(user_id: str, section_name: str, parent_id: int
                     DELETE FROM user_profile_sections
                     WHERE id = $1
                     """,
-                    section_id
+                    section_name
                 )
     finally:
         await conn.close()
@@ -208,31 +208,31 @@ async def copy_default_sections(user_id: str):
         await conn.close()
 
 # ✅ Добавить объект в раздел/подраздел
-async def insert_object(user_id: str, section_id: int, name: str, description: str = None, photo_file_id: str = None):
+async def insert_object(user_id: str, section_name: int, name: str, description: str = None, photo_file_id: str = None):
     conn = await get_connection()
     try:
         await conn.execute(
             """
-            INSERT INTO user_profile_objects (user_id, section_id, object_name, description, photo_file_id)
+            INSERT INTO user_profile_objects (user_id, section_name, object_name, description, photo_file_id)
             VALUES ($1, $2, $3, $4, $5)
             """,
-            user_id, section_id, name, description, photo_file_id
+            user_id, section_name, name, description, photo_file_id
         )
     finally:
         await conn.close()
 
 # 📥 Получить все объекты для раздела или подраздела
-async def fetch_objects_by_section(user_id: str, section_id: int):
+async def fetch_objects_by_section(user_id: str, section_name: int):
     conn = await get_connection()
     try:
         rows = await conn.fetch(
             """
             SELECT id, object_name, description, photo_file_id
             FROM user_profile_objects
-            WHERE user_id = $1 AND section_id = $2
+            WHERE user_id = $1 AND section_name = $2
             ORDER BY created_at
             """,
-            user_id, section_id
+            user_id, section_name
         )
         return [
             {
@@ -261,7 +261,7 @@ async def delete_object_by_id(object_id: int):
         await conn.close()
 
 # ✏️ Переименовать раздел или подраздел по ID
-async def rename_section_by_id(section_id: int, new_name: str):
+async def rename_section_by_id(section_name: int, new_name: str):
     conn = await get_connection()
     try:
         await conn.execute(
@@ -270,13 +270,13 @@ async def rename_section_by_id(section_id: int, new_name: str):
             SET section_name = $1
             WHERE id = $2
             """,
-            new_name, section_id
+            new_name, section_name
         )
     finally:
         await conn.close()
 
 # ✏ Переименование раздела или подраздела по ID
-async def update_section_name(section_id: int, new_name: str):
+async def update_section_name(section_name: int, new_name: str):
     conn = await get_connection()
     try:
         await conn.execute(
@@ -285,7 +285,7 @@ async def update_section_name(section_id: int, new_name: str):
             SET section_name = $1
             WHERE id = $2
             """,
-            new_name, section_id
+            new_name, section_name
         )
     finally:
         await conn.close()

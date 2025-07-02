@@ -139,7 +139,7 @@ DROP TABLE IF EXISTS user_profile_objects;
 CREATE TABLE user_profile_objects (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
-    section_id INTEGER NOT NULL REFERENCES user_profile_sections(id) ON DELETE CASCADE,
+    section_name INTEGER NOT NULL REFERENCES user_profile_sections(id) ON DELETE CASCADE,
     object_name TEXT NOT NULL,
     description TEXT,
     photo_file_id TEXT,

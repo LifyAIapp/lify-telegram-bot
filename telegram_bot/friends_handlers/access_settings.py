@@ -19,9 +19,9 @@ async def handle_access_settings(update: Update, context: ContextTypes.DEFAULT_T
 
     buttons = []
     for section in all_sections:
-        section_id = section["id"]
+        section_name = section["id"]
         name = section["emoji"] + " " + section["name"]
-        marker = "✅" if section_id in allowed_sections else "❌"
+        marker = "✅" if section_name in allowed_sections else "❌"
         buttons.append([f"{marker} {name}"])
 
     buttons.append(["🔙 Назад"])

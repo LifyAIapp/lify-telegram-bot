@@ -125,15 +125,15 @@ async def show_subsections(update: Update, context: ContextTypes.DEFAULT_TYPE, s
 
 async def show_objects_in_subsection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
-    section_id = context.user_data.get("selected_subsection_id") or context.user_data.get("selected_section_id")
+    section_name = context.user_data.get("selected_subsection_id") or context.user_data.get("selected_section_id")
 
-    if not section_id:
+    if not section_name:
         await update.message.reply_text("⚠️ Не удалось определить подраздел или раздел.")
         return
 
-    context.user_data["current_section_id"] = section_id
+    context.user_data["current_section_id"] = section_name
 
-    objects = await fetch_objects_by_section(user_id, section_id)
+    objects = await fetch_objects_by_section(user_id, section_name)
     for obj in objects:
         msg = f"📌 *{obj['name']}*"
         if obj["description"]:
