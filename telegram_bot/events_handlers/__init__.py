@@ -1,1 +1,1 @@
-from .handle_events_navigation import handle_events_navigation
+from telegram_bot.events_handlers.events_handlers import handle_events_navigation
