@@ -208,7 +208,7 @@ async def copy_default_sections(user_id: str):
         await conn.close()
 
 # ✅ Добавить объект в раздел/подраздел
-async def insert_object(user_id: str, section_name: int, name: str, description: str = None, photo_file_id: str = None):
+async def insert_object(user_id: str, section_name: str, name: str, description: str = None, photo_file_id: str = None):
     conn = await get_connection()
     try:
         await conn.execute(
@@ -222,7 +222,7 @@ async def insert_object(user_id: str, section_name: int, name: str, description:
         await conn.close()
 
 # 📥 Получить все объекты для раздела или подраздела
-async def fetch_objects_by_section(user_id: str, section_name: int):
+async def fetch_objects_by_section(user_id: str, section_name: str):
     conn = await get_connection()
     try:
         rows = await conn.fetch(
@@ -261,7 +261,7 @@ async def delete_object_by_id(object_id: int):
         await conn.close()
 
 # ✏️ Переименовать раздел или подраздел по ID
-async def rename_section_by_id(section_name: int, new_name: str):
+async def rename_section_by_id(section_name: str, new_name: str):
     conn = await get_connection()
     try:
         await conn.execute(
@@ -276,7 +276,7 @@ async def rename_section_by_id(section_name: int, new_name: str):
         await conn.close()
 
 # ✏ Переименование раздела или подраздела по ID
-async def update_section_name(section_name: int, new_name: str):
+async def update_section_name(section_name: str, new_name: str):
     conn = await get_connection()
     try:
         await conn.execute(

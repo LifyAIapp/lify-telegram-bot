@@ -103,7 +103,7 @@ async def delete_friend(user_id: str, friend_user_id: str):
 # -------------------- ACCESS RIGHTS --------------------
 
 # ✅ Установить право доступа к разделу
-async def set_access_right(owner_user_id: str, viewer_user_id: str, section_name: int, is_allowed: bool):
+async def set_access_right(owner_user_id: str, viewer_user_id: str, section_name: str, is_allowed: bool):
     conn = await get_connection()
     try:
         await conn.execute(
@@ -134,7 +134,7 @@ async def get_allowed_sections(owner_user_id: str, viewer_user_id: str):
         await conn.close()
 
 # ✅ Проверить, доступен ли конкретный раздел
-async def is_section_allowed(owner_user_id: str, viewer_user_id: str, section_name: int) -> bool:
+async def is_section_allowed(owner_user_id: str, viewer_user_id: str, section_name: str) -> bool:
     conn = await get_connection()
     try:
         result = await conn.fetchval(
@@ -185,7 +185,7 @@ async def fetch_all_user_sections(owner_user_id: str):
         await conn.close()
 
 # ✅ Переключить доступ к разделу (разрешить/запретить)
-async def toggle_access_to_section(owner_user_id: str, viewer_user_id: str, section_name: int):
+async def toggle_access_to_section(owner_user_id: str, viewer_user_id: str, section_name: str):
     conn = await get_connection()
     try:
         # Проверить текущее значение доступа
