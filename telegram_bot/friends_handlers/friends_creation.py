@@ -40,12 +40,14 @@ async def handle_friend_creation(update: Update, context: ContextTypes.DEFAULT_T
         target_user = await find_user_by_username(username)
 
         if not target_user:
-            await update.message.reply_text("❗ Пользователь с таким username не найден.")
-            return True
+            await update.message.reply_text("❗ Пользователь с таким username не найден. Возврат в меню друзей.")
+            clear_friends_context(context)
+            return "refresh_friends"
 
         if user_id == target_user["user_id"]:
-            await update.message.reply_text("😅 Вы не можете добавить самого себя.")
-            return True
+            await update.message.reply_text("😅 Вы не можете добавить самого себя. Возврат в меню друзей.")
+            clear_friends_context(context)
+            return "refresh_friends"
 
         context.user_data["pending_friend_user_id"] = target_user["user_id"]
         context.user_data["pending_friend_display_name"] = target_user["display_name"]
