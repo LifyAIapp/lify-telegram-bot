@@ -110,12 +110,13 @@ async def handle_friends_navigation(update: Update, context: ContextTypes.DEFAUL
         friend_name = text.split(" ", 1)[-1]
         friends = context.user_data.get("friends", [])
 
-        # 👇 Временный отладочный вывод
-        print("DEBUG — text received:", repr(text))
-        print("DEBUG — friend_name parsed:", repr(friend_name))
-        print("DEBUG — available friends:")
+        print("\n===== FRIEND SELECTION DEBUG =====")
+        print("🆗 text received:", repr(text))
+        print("🔍 Parsed friend_name:", repr(friend_name))
+        print("📋 Friends in context:")
         for f in friends:
-            print("-", repr(f["display_name"]))
+            print("-", repr(f["display_name"]), "| normalized:", f["display_name"].strip().lower())
+        print("==================================\n")
 
         friend = next(
             (f for f in friends if f["display_name"].strip().lower() == friend_name.strip().lower()),
