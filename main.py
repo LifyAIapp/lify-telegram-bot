@@ -7,6 +7,7 @@ from telegram.ext import Application, MessageHandler, filters, CommandHandler, C
 from telegram_bot.main_menu_handlers.main_menu import welcome, start, handle_menu_choice
 from telegram_bot.profile_handlers.profile_handlers import handle_profile_navigation
 from telegram_bot.friends_handlers.friends_handlers import handle_friends_navigation
+from telegram_bot.events_handlers import handle_events_navigation  # импортируем обработчик событий
 from config import TELEGRAM_TOKEN
 
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
@@ -43,6 +44,8 @@ def setup_application():
             await handle_profile_navigation(update, context)
         elif mode == "friends":
             await handle_friends_navigation(update, context)
+        elif mode == "events":  # Добавляем обработку для events
+            await handle_events_navigation(update, context)
         else:
             await update.message.reply_text("⚠ Неизвестный режим.")
 
