@@ -8,8 +8,6 @@ from telegram_bot.friends_handlers.friends_deletion import handle_friend_deletio
 from telegram_bot.friends_handlers.friends_roles import handle_role_update, build_role_selection_keyboard
 from telegram_bot.friends_handlers.access_settings import handle_access_settings
 from telegram_bot.main_menu_handlers.keyboards import main_menu_markup
-from database.db_friends import get_friends, get_display_name 
-
 
 
 # 📜 Клавиатура списка друзей
@@ -40,8 +38,9 @@ async def show_friends_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for friend in friends:
         friend["display_name"] = await get_display_name(friend["friend_id"])
 
-    clear_friends_context(context)  # ← безопасная очистка, mode сохраняется
+    clear_friends_context(context)
     context.user_data["friends"] = friends
+    context.user_data["mode"] = "friends"  # 🛠 УСТАНАВЛИВАЕМ РЕЖИМ
 
     if friends:
         await update.message.reply_text("🤝 Ваши друзья:", reply_markup=build_friends_keyboard(friends))
@@ -53,7 +52,6 @@ async def show_friends_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ["🏠 Лобби"]
             ], resize_keyboard=True)
         )
-
 
 
 # 🔄 Обработка всех действий в разделе "Друзья"
