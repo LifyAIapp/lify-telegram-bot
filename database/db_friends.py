@@ -148,7 +148,7 @@ async def is_section_allowed(owner_id: str, viewer_id: str, section_id: int) -> 
     finally:
         await conn.close()
 
-# ✅ Получить список доступных разделов (id + имя)
+## ✅ Получить список доступных разделов (id + имя)
 async def fetch_accessible_sections_for_friend(owner_id: str, viewer_id: str):
     conn = await get_connection()
     try:
@@ -156,14 +156,16 @@ async def fetch_accessible_sections_for_friend(owner_id: str, viewer_id: str):
             """
             SELECT s.id, s.section_name
             FROM access_rights ar
-            JOIN user_profile_sections s ON ar.section_id = s.id
-            WHERE ar.owner_id = $1 AND ar.viewer_id = $2 AND ar.allowed = TRUE
+            JOIN user_profile_sections s 
+              ON ar.section_name = s.section_name AND s.user_id = ar.owner_user_id
+            WHERE ar.owner_user_id = $1 AND ar.viewer_user_id = $2 AND ar.is_allowed = TRUE
             """,
             owner_id, viewer_id
         )
         return [{"id": row["id"], "name": row["section_name"]} for row in rows]
     finally:
         await conn.close()
+
 
 # ✅ Получить все разделы пользователя (для настроек доступа)
 async def fetch_all_user_sections(owner_id: str):
