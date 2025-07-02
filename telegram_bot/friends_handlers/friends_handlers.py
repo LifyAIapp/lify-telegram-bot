@@ -6,7 +6,7 @@ from telegram_bot.friends_handlers.friends_info import show_friend_info
 from telegram_bot.friends_handlers.friends_creation import start_friend_addition, handle_friend_creation
 from telegram_bot.friends_handlers.friends_deletion import handle_friend_deletion
 from telegram_bot.friends_handlers.friends_roles import handle_role_update, build_role_selection_keyboard
-from telegram_bot.friends_handlers.access_settings import handle_access_settings
+from telegram_bot.friends_handlers.access_settings import handle_access_settings, handle_access_toggle
 from telegram_bot.main_menu_handlers.keyboards import main_menu_markup
 
 
@@ -88,6 +88,16 @@ async def handle_friends_navigation(update: Update, context: ContextTypes.DEFAUL
 
     if state == "access_settings":
         await handle_access_settings(update, context)
+        return
+
+    if state == "editing_access_rights":
+        result = await handle_access_toggle(update, context)
+        if result == "refresh_friend":
+            friend_name = context.user_data.get("selected_friend_name")
+            await update.message.reply_text(
+                f"📈 Выберите действие для {friend_name}:",
+                reply_markup=build_friend_action_keyboard(friend_name)
+            )
         return
 
     if text == "➕ Добавить друга":
