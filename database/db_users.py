@@ -16,17 +16,18 @@ async def insert_or_update_user(user_id: str, username: str = None, display_name
     finally:
         await conn.close()
 
-# 🔍 Найти пользователя по username (без @)
+# 🔍 Найти пользователя по username (без @), поиск без учёта регистра
 async def find_user_by_username(username: str):
     conn = await get_connection()
     try:
+        clean_username = username.lstrip("@")
         row = await conn.fetchrow(
             """
             SELECT user_id, username, display_name
             FROM users
-            WHERE username = $1
+            WHERE LOWER(username) = LOWER($1)
             """,
-            username.lstrip("@")
+            clean_username
         )
         if row:
             return {
