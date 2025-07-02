@@ -1,14 +1,13 @@
-from telegram import Update, ReplyKeyboardMarkup
+ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from telegram_bot.utils.context_cleanup import clear_friends_context
-from database.db_friends import get_friends
+from database.db_friends import get_friends, get_display_name
 from telegram_bot.friends_handlers.friends_info import show_friend_info
 from telegram_bot.friends_handlers.friends_creation import start_friend_addition, handle_friend_creation
 from telegram_bot.friends_handlers.friends_deletion import handle_friend_deletion
 from telegram_bot.friends_handlers.friends_roles import handle_role_update, build_role_selection_keyboard
 from telegram_bot.friends_handlers.access_settings import handle_access_settings
 from telegram_bot.main_menu_handlers.keyboards import main_menu_markup
-from database.db_friends import get_display_name
 
 
 # 📜 Клавиатура списка друзей
@@ -29,8 +28,6 @@ def build_friend_action_keyboard(friend_name):
         ["🔚 Назад"]
     ], resize_keyboard=True)
 
-
-# 📂 Меню друзей
 # 📂 Меню друзей
 async def show_friends_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
@@ -112,9 +109,18 @@ async def handle_friends_navigation(update: Update, context: ContextTypes.DEFAUL
     if text.startswith("👥 "):
         friend_name = text.split(" ", 1)[-1]
         friends = context.user_data.get("friends", [])
-        friend = next((f for f in friends if f["display_name"].strip().lower() == friend_name.strip().lower()),
-    None)
 
+        # 👇 Временный отладочный вывод
+        print("DEBUG — text received:", repr(text))
+        print("DEBUG — friend_name parsed:", repr(friend_name))
+        print("DEBUG — available friends:")
+        for f in friends:
+            print("-", repr(f["display_name"]))
+
+        friend = next(
+            (f for f in friends if f["display_name"].strip().lower() == friend_name.strip().lower()),
+            None
+        )
 
         if not friend:
             await update.message.reply_text("⚠️ Не удалось определить друга.")
