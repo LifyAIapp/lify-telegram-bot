@@ -36,7 +36,7 @@ async def show_friends_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # ✅ Добавляем display_name каждому другу
     for friend in friends:
-        friend["display_name"] = await get_display_name(friend["friend_id"])
+        friend["display_name"] = await get_display_name(friend["friend_user_id"])
 
     clear_friends_context(context)
     context.user_data["friends"] = friends
