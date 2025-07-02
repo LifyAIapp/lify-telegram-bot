@@ -112,7 +112,9 @@ async def handle_friends_navigation(update: Update, context: ContextTypes.DEFAUL
     if text.startswith("👥 "):
         friend_name = text.split(" ", 1)[-1]
         friends = context.user_data.get("friends", [])
-        friend = next((f for f in friends if f["display_name"] == friend_name), None)
+        friend = next((f for f in friends if f["display_name"].strip().lower() == friend_name.strip().lower()),
+    None)
+
 
         if not friend:
             await update.message.reply_text("⚠️ Не удалось определить друга.")
