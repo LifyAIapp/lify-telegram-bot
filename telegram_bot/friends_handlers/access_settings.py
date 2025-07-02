@@ -6,7 +6,7 @@ from database.db_friends import (
     toggle_access_to_section
 )
 
-# Показывает список всех разделов с отметкой доступа
+# ✅ Показывает список всех разделов с отметкой доступа
 async def handle_access_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     friend_user_id = context.user_data.get("selected_friend_user_id")
@@ -19,10 +19,10 @@ async def handle_access_settings(update: Update, context: ContextTypes.DEFAULT_T
 
     buttons = []
     for section in all_sections:
-        section_name = 
-section["name"]        name = section["emoji"] + " " + section["name"]
-        marker = "✅" if section_name in allowed_sections else "❌"
-        buttons.append([f"{marker} {name}"])
+        section_name = section["name"]
+        label = f"{section['emoji']} {section_name}"
+        marker = "✅" if section_name in [s['name'] for s in allowed_sections] else "❌"
+        buttons.append([f"{marker} {label}"])
 
     buttons.append(["🔙 Назад"])
     markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
@@ -30,9 +30,12 @@ section["name"]        name = section["emoji"] + " " + section["name"]
     context.user_data["state"] = "editing_access_rights"
     context.user_data["all_sections"] = all_sections
 
-    await update.message.reply_text("🔐 Отметьте, к каким разделам у друга есть доступ:", reply_markup=markup)
+    await update.message.reply_text(
+        "🔐 Отметьте, к каким разделам у друга есть доступ:",
+        reply_markup=markup
+    )
 
-# Обработка переключения доступа
+# ✅ Обработка переключения доступа
 async def handle_access_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get("state") != "editing_access_rights":
         return False
