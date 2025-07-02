@@ -3,7 +3,7 @@ from telegram.ext import ContextTypes
 from database.db_friends import update_friend_role
 
 # ✅ Предустановленные роли
-roles = ["💑 Партнёр", "💑 Друг", "👨‍👩‍👧‍👦 Родственник", "👔 Коллега"]
+roles = ["💑 Партнёр", "👫 Друг", "👨‍👩‍👧‍👦 Родственник", "👔 Коллега"]
 
 # 🔧 Клавиатура выбора ролей
 def build_role_selection_keyboard():
@@ -16,11 +16,6 @@ async def handle_role_update(update: Update, context: ContextTypes.DEFAULT_TYPE)
     text = update.message.text.strip()
     user_id = str(update.effective_user.id)
     friend_user_id = context.user_data.get("selected_friend_user_id")
-
-    if context.user_data.get("state") != "awaiting_new_role":
-        context.user_data["state"] = "awaiting_new_role"
-        await update.message.reply_text("✏️ Выберите новую роль для друга:", reply_markup=build_role_selection_keyboard())
-        return True
 
     if text == "❌ Отмена":
         context.user_data.pop("state", None)
@@ -37,5 +32,6 @@ async def handle_role_update(update: Update, context: ContextTypes.DEFAULT_TYPE)
             await update.message.reply_text("⚠️ Не удалось определить друга.")
             return True
     else:
-        await update.message.reply_text("Пожалуйста, выберите роль из списка.")
+        context.user_data["state"] = "awaiting_role_selection"
+        await update.message.reply_text("✏️ Выберите роль:", reply_markup=build_role_selection_keyboard())
         return True
