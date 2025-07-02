@@ -145,3 +145,32 @@ CREATE TABLE user_profile_objects (
     photo_file_id TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Создание таблицы событий
+CREATE TABLE IF NOT EXISTS events (
+    event_id SERIAL PRIMARY KEY,
+    owner_user_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    date DATE NOT NULL,
+    is_shared BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+-- Создание таблицы участников события (для общих событий)
+CREATE TABLE IF NOT EXISTS event_participants (
+    id SERIAL PRIMARY KEY,
+    event_id INTEGER NOT NULL REFERENCES events(event_id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL,
+    role TEXT DEFAULT 'participant',
+    UNIQUE(event_id, user_id)
+);
+
+-- Создание таблицы вишлистов пользователей
+CREATE TABLE IF NOT EXISTS wishlists (
+    wishlist_id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    item_name TEXT NOT NULL,
+    note TEXT,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
