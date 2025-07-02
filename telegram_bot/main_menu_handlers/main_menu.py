@@ -30,34 +30,32 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
 
+    # 💡 Очистка всех прошлых состояний
+    context.user_data.clear()
+
     if text == "🣍️ Профиль":
         context.user_data["mode"] = "profile"
-        context.user_data["profile_state"] = "sections"  # ← дополнительное состояние
-        await show_profile_menu (update, context)
+        context.user_data["profile_state"] = "sections"
+        await show_profile_menu(update, context)
 
     elif text == "👫 Друзья":
         context.user_data["mode"] = "friends"
-        context.user_data["friends_state"] = "list"  # ← дополнительное состояние
-        await show_friends_menu (update, context)
+        context.user_data["friends_state"] = "list"
+        await show_friends_menu(update, context)
 
     elif text == "🧠 Психолог":
-        context.user_data.clear()
         await update.message.reply_text("Раздел 🧠 Психолог пока в разработке.")
 
     elif text == "🦥️ Здоровье":
-        context.user_data.clear()
         await update.message.reply_text("Раздел 🦥️ Здоровье пока в разработке.")
 
     elif text == "📝 Задачи":
-        context.user_data.clear()
         await update.message.reply_text("Раздел 📝 Задачи пока в разработке.")
 
     elif text == "🔁 Цикл":
-        context.user_data.clear()
         await update.message.reply_text("Раздел 🔁 Цикл пока в разработке.")
 
     elif text == "💬 Помощь (FTUE)":
-        context.user_data.clear()
         await update.message.reply_text(
             "💭 *Помощь:*\n"
             "— Используйте кнопки меню для навигации.\n"
