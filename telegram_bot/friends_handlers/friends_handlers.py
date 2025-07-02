@@ -28,10 +28,11 @@ def build_friend_action_keyboard(friend_name):
         ["🔚 Назад"]
     ], resize_keyboard=True)
 
+
 # 📂 Меню друзей
 async def show_friends_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
-    
+
     # Получаем список друзей
     friends = await get_friends(user_id)
 
@@ -106,27 +107,17 @@ async def handle_friends_navigation(update: Update, context: ContextTypes.DEFAUL
         await update.message.reply_text("Вы вернулись в главное меню.", reply_markup=main_menu_markup)
         return
 
-    if text.startswith("👥 "):
-        friend_name = text.split(" ", 1)[-1]
-        friends = context.user_data.get("friends", [])
+    # Универсальное определение друга по display_name (без привязки к эмодзи)
+    friends = context.user_data.get("friends", [])
+    normalized_text = text.replace("👥", "").strip().lower()
 
-        print("\n===== FRIEND SELECTION DEBUG =====")
-        print("🆗 text received:", repr(text))
-        print("🔍 Parsed friend_name:", repr(friend_name))
-        print("📋 Friends in context:")
-        for f in friends:
-            print("-", repr(f["display_name"]), "| normalized:", f["display_name"].strip().lower())
-        print("==================================\n")
+    friend = next(
+        (f for f in friends if f["display_name"].strip().lower() == normalized_text),
+        None
+    )
 
-        friend = next(
-            (f for f in friends if f["display_name"].strip().lower() == friend_name.strip().lower()),
-            None
-        )
-
-        if not friend:
-            await update.message.reply_text("⚠️ Не удалось определить друга.")
-            return
-
+    if friend:
+        friend_name = friend["display_name"]
         context.user_data["selected_friend_name"] = friend_name
         context.user_data["selected_friend_user_id"] = friend["friend_user_id"]
         context.user_data["state"] = "friend_selected"
