@@ -173,14 +173,14 @@ async def fetch_all_user_sections(owner_id: str):
     try:
         rows = await conn.fetch(
             """
-            SELECT id, section_name
+            SELECT id, section_name, COALESCE(emoji, '') AS emoji
             FROM user_profile_sections
             WHERE user_id = $1 AND parent_section_id IS NULL
             ORDER BY id
             """,
             owner_id
         )
-        return [{"id": row["id"], "name": row["section_name"]} for row in rows]
+        return [{"id": row["id"], "name": row["section_name"], "emoji": row["emoji"]} for row in rows]
     finally:
         await conn.close()
 
