@@ -40,7 +40,7 @@ async def show_friends_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     clear_friends_context(context)
     context.user_data["friends"] = friends
-    context.user_data["mode"] = "friends"  # 🛠 УСТАНАВЛИВАЕМ РЕЖИМ
+    context.user_data["mode"] = "friends"
 
     if friends:
         await update.message.reply_text("🤝 Ваши друзья:", reply_markup=build_friends_keyboard(friends))
@@ -70,9 +70,9 @@ async def handle_friends_navigation(update: Update, context: ContextTypes.DEFAUL
     elif result:
         return
 
-    if state == "awaiting_role_selection":
+    if state in ["awaiting_role_selection", "awaiting_new_role"]:
         result = await handle_role_update(update, context)
-        if result == "role_updated":
+        if result == "refresh_friend":
             friend_name = context.user_data.get("selected_friend_name")
             await update.message.reply_text(
                 f"📈 Выберите действие для {friend_name}:",
@@ -100,7 +100,7 @@ async def handle_friends_navigation(update: Update, context: ContextTypes.DEFAUL
         await update.message.reply_text("Вы вернулись в главное меню.", reply_markup=main_menu_markup)
         return
 
-    # Универсальное определение друга по display_name (без привязки к эмодзи)
+    # Универсальное определение друга по display_name
     friends = context.user_data.get("friends", [])
     normalized_text = text.replace("👥", "").strip().lower()
 
