@@ -9,5 +9,5 @@ def create_main_menu():
     ]
     return ReplyKeyboardMarkup(main_menu_keyboard, resize_keyboard=True)
 
-# Для совместимости можно оставить переменную, но уже с вызовом функции
+# Переменная для удобного импорта
 main_menu_markup = create_main_menu()
