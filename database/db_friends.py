@@ -103,17 +103,17 @@ async def delete_friend(user_id: str, friend_user_id: str):
 # -------------------- ACCESS RIGHTS --------------------
 
 # ✅ Установить право доступа к разделу
-async def set_access_right(owner_id: str, viewer_id: str, section_id: int, allowed: bool):
+async def set_access_right(owner_id: str, viewer_id: str, section_id: int, is_allowed: bool):
     conn = await get_connection()
     try:
         await conn.execute(
             """
-            INSERT INTO access_rights (owner_id, viewer_id, section_id, allowed)
+            INSERT INTO access_rights (owner_id, viewer_id, section_id, is_allowed)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (owner_id, viewer_id, section_id)
-            DO UPDATE SET allowed = EXCLUDED.allowed
+            DO UPDATE SET is_allowed = EXCLUDED.is_allowed
             """,
-            owner_id, viewer_id, section_id, allowed
+            owner_id, viewer_id, section_id, is_allowed
         )
     finally:
         await conn.close()
@@ -125,7 +125,7 @@ async def get_allowed_sections(owner_id: str, viewer_id: str):
         rows = await conn.fetch(
             """
             SELECT section_id FROM access_rights
-            WHERE owner_id = $1 AND viewer_id = $2 AND allowed = TRUE
+            WHERE owner_id = $1 AND viewer_id = $2 AND is_allowed = TRUE
             """,
             owner_id, viewer_id
         )
@@ -139,7 +139,7 @@ async def is_section_allowed(owner_id: str, viewer_id: str, section_id: int) -> 
     try:
         result = await conn.fetchval(
             """
-            SELECT allowed FROM access_rights
+            SELECT is_allowed FROM access_rights
             WHERE owner_id = $1 AND viewer_id = $2 AND section_id = $3
             """,
             owner_id, viewer_id, section_id
@@ -191,7 +191,7 @@ async def toggle_access_to_section(owner_id: str, viewer_id: str, section_id: in
         # Проверить текущее значение доступа
         current = await conn.fetchval(
             """
-            SELECT allowed FROM access_rights
+            SELECT is_allowed FROM access_rights
             WHERE owner_id = $1 AND viewer_id = $2 AND section_id = $3
             """,
             owner_id, viewer_id, section_id
@@ -202,10 +202,10 @@ async def toggle_access_to_section(owner_id: str, viewer_id: str, section_id: in
         # Вставить или обновить значение
         await conn.execute(
             """
-            INSERT INTO access_rights (owner_id, viewer_id, section_id, allowed)
+            INSERT INTO access_rights (owner_id, viewer_id, section_id, is_allowed)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (owner_id, viewer_id, section_id)
-            DO UPDATE SET allowed = EXCLUDED.allowed
+            DO UPDATE SET is_allowed = EXCLUDED.is_allowed
             """,
             owner_id, viewer_id, section_id, new_value
         )
