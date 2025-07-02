@@ -19,8 +19,8 @@ async def handle_access_settings(update: Update, context: ContextTypes.DEFAULT_T
 
     buttons = []
     for section in all_sections:
-        section_name = section["id"]
-        name = section["emoji"] + " " + section["name"]
+        section_name = 
+section["name"]        name = section["emoji"] + " " + section["name"]
         marker = "✅" if section_name in allowed_sections else "❌"
         buttons.append([f"{marker} {name}"])
 
@@ -51,7 +51,7 @@ async def handle_access_toggle(update: Update, context: ContextTypes.DEFAULT_TYP
     for section in all_sections:
         label = f"{section['emoji']} {section['name']}"
         if label == clean_text:
-            await toggle_access_to_section(user_id, friend_user_id, section["id"])
+            await toggle_access_to_section(user_id, friend_user_id, section["name"])
             return await handle_access_settings(update, context)
 
     await update.message.reply_text("⚠️ Не удалось распознать раздел.")
