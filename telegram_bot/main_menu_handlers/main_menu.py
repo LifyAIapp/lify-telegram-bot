@@ -55,7 +55,10 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif text == "🔁 Цикл":
         await update.message.reply_text("Раздел 🔁 Цикл пока в разработке.")
 
-    elif text == "💬 Помощь (FTUE)":
+    elif text == "📅 События":
+        await update.message.reply_text("Раздел 📅 События пока в разработке.")
+
+    elif text == "💬 Помощь":
         await update.message.reply_text(
             "💭 *Помощь:*\n"
             "— Используйте кнопки меню для навигации.\n"
