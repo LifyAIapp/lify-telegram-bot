@@ -103,15 +103,15 @@ async def show_profile_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text("📂 Ваши разделы профиля:", reply_markup=build_root_section_keyboard(sections))
 
-async def show_subsections(update: Update, context: ContextTypes.DEFAULT_TYPE, section_name: str):
+async def show_subsections(update: Update, context: ContextTypes.DEFAULT_TYPE, section_id: str):
     user_id = str(update.effective_user.id)
-    parent = await fetch_section_by_name(user_id, section_name)
+    parent = await fetch_section_by_name(user_id, section_id)
     if not parent:
         await update.message.reply_text("⚠️ Раздел не найден.")
         return
 
     context.user_data.update({
-        "selected_section": section_name,
+        "selected_section": section_id,
         "selected_section_id": parent["id"],
         "current_section_id": parent["id"],
         "is_subsection_level": True
@@ -119,21 +119,21 @@ async def show_subsections(update: Update, context: ContextTypes.DEFAULT_TYPE, s
 
     subsections = await fetch_sections_by_parent(user_id, parent["id"])
     if subsections:
-        await update.message.reply_text(f"📁 Подразделы «{section_name}»:", reply_markup=build_subsection_keyboard(subsections))
+        await update.message.reply_text(f"📁 Подразделы «{section_id}»:", reply_markup=build_subsection_keyboard(subsections))
     else:
-        await update.message.reply_text(f"📁 В разделе «{section_name}» пока нет подразделов.", reply_markup=build_section_keyboard())
+        await update.message.reply_text(f"📁 В разделе «{section_id}» пока нет подразделов.", reply_markup=build_section_keyboard())
 
 async def show_objects_in_subsection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
-    section_name = context.user_data.get("selected_subsection_id") or context.user_data.get("selected_section_id")
+    section_id = context.user_data.get("selected_subsection_id") or context.user_data.get("selected_section_id")
 
-    if not section_name:
+    if not section_id:
         await update.message.reply_text("⚠️ Не удалось определить подраздел или раздел.")
         return
 
-    context.user_data["current_section_id"] = section_name
+    context.user_data["current_section_id"] = section_id
 
-    objects = await fetch_objects_by_section(user_id, section_name)
+    objects = await fetch_objects_by_section(user_id, section_id)
     for obj in objects:
         msg = f"📌 *{obj['name']}*"
         if obj["description"]:

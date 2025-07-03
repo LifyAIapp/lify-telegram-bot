@@ -45,15 +45,15 @@ async def handle_section_rename(update: Update, context: ContextTypes.DEFAULT_TY
     # === Шаг 2: Подтверждение ===
     if state == "confirm_section_rename":
         if text == "✅ Сохранить":
-            section_name = context.user_data.get("selected_section_id")
+            section_id = context.user_data.get("selected_section_id")
             new_name = context.user_data.get("pending_new_name")
 
-            if not section_name or not new_name:
+            if not section_id or not new_name:
                 await update.message.reply_text("⚠️ Не удалось определить раздел или новое имя.")
                 context.user_data.clear()
                 return "refresh_menu"
 
-            await update_section_name(section_name, new_name)
+            await update_section_name(section_id, new_name)
             context.user_data.clear()
             await update.message.reply_text(f"✅ Раздел переименован в: {new_name}")
             return "refresh_menu"

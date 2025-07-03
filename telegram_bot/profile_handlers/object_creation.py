@@ -69,15 +69,15 @@ async def handle_object_creation(update: Update, context: ContextTypes.DEFAULT_T
     # === Шаг 4: Подтверждение ===
     if state == "confirm_object":
         if text == "✅ Сохранить":
-            section_name = context.user_data.get("current_section_id")
-            if not section_name:
+            section_id = context.user_data.get("current_section_id")
+            if not section_id:
                 await update.message.reply_text("⚠️ Не удалось определить раздел/подраздел для сохранения.")
                 context.user_data.clear()
                 return "refresh_objects"
 
             await insert_object(
                 user_id=user_id,
-                section_name=section_name,
+                section_id=section_id,
                 name=context.user_data.get("new_object_name"),
                 description=context.user_data.get("new_object_description"),
                 photo_file_id=context.user_data.get("new_object_photo")

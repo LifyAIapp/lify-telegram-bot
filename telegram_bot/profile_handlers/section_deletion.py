@@ -44,11 +44,11 @@ async def handle_section_deletion(update: Update, context: ContextTypes.DEFAULT_
     if state == "confirm_delete_section":
         if text == "🗑 Подтвердить удаление":
             user_id = str(update.effective_user.id)
-            section_name = context.user_data.get("selected_section")
+            section_id = context.user_data.get("selected_section")
 
-            await delete_section_by_name(user_id, section_name)
+            await delete_section_by_name(user_id, section_id)
             context.user_data.clear()
-            await update.message.reply_text(f"✅ Раздел «{section_name}» удалён.")
+            await update.message.reply_text(f"✅ Раздел «{section_id}» удалён.")
             return "refresh_menu"
 
         elif text == "❌ Отмена":

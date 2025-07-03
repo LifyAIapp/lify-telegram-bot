@@ -53,7 +53,7 @@ async def handle_section_creation(update: Update, context: ContextTypes.DEFAULT_
 
             await insert_section_if_not_exists(
                 user_id=user_id,
-                section_name=name,
+                section_id=name,
                 emoji=emoji,
                 parent_section_id=parent_section_id
             )

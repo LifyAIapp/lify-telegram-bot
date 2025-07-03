@@ -103,17 +103,17 @@ async def delete_friend(user_id: str, friend_user_id: str):
 # -------------------- ACCESS RIGHTS --------------------
 
 # ✅ Установить право доступа к разделу
-async def set_access_right(owner_user_id: str, viewer_user_id: str, section_name: str, is_allowed: bool):
+async def set_access_right(owner_user_id: str, viewer_user_id: str, section_id: str, is_allowed: bool):
     conn = await get_connection()
     try:
         await conn.execute(
             """
-            INSERT INTO access_rights (owner_user_id, viewer_user_id, section_name, is_allowed)
+            INSERT INTO access_rights (owner_user_id, viewer_user_id, section_id, is_allowed)
             VALUES ($1, $2, $3, $4)
-            ON CONFLICT (owner_user_id, viewer_user_id, section_name)
+            ON CONFLICT (owner_user_id, viewer_user_id, section_id)
             DO UPDATE SET is_allowed = EXCLUDED.is_allowed
             """,
-            owner_user_id, viewer_user_id, section_name, is_allowed
+            owner_user_id, viewer_user_id, section_id, is_allowed
         )
     finally:
         await conn.close()
@@ -124,25 +124,25 @@ async def get_allowed_sections(owner_user_id: str, viewer_user_id: str):
     try:
         rows = await conn.fetch(
             """
-            SELECT section_name FROM access_rights
+            SELECT section_id FROM access_rights
             WHERE owner_user_id = $1 AND viewer_user_id = $2 AND is_allowed = TRUE
             """,
             owner_user_id, viewer_user_id
         )
-        return [row["section_name"] for row in rows]
+        return [row["section_id"] for row in rows]
     finally:
         await conn.close()
 
 # ✅ Проверить, доступен ли конкретный раздел
-async def is_section_allowed(owner_user_id: str, viewer_user_id: str, section_name: str) -> bool:
+async def is_section_allowed(owner_user_id: str, viewer_user_id: str, section_id: str) -> bool:
     conn = await get_connection()
     try:
         result = await conn.fetchval(
             """
             SELECT is_allowed FROM access_rights
-            WHERE owner_user_id = $1 AND viewer_user_id = $2 AND section_name = $3
+            WHERE owner_user_id = $1 AND viewer_user_id = $2 AND section_id = $3
             """,
-            owner_user_id, viewer_user_id, section_name
+            owner_user_id, viewer_user_id, section_id
         )
         return result is True
     finally:
@@ -154,15 +154,15 @@ async def fetch_accessible_sections_for_friend(owner_user_id: str, viewer_user_i
     try:
         rows = await conn.fetch(
             """
-            SELECT s.id, s.section_name
+            SELECT s.id, s.section_id
             FROM access_rights ar
             JOIN user_profile_sections s 
-              ON ar.section_name = s.section_name AND s.user_id = ar.owner_user_id
+              ON ar.section_id = s.section_id AND s.user_id = ar.owner_user_id
             WHERE ar.owner_user_id = $1 AND ar.viewer_user_id = $2 AND ar.is_allowed = TRUE
             """,
             owner_user_id, viewer_user_id
         )
-        return [{"id": row["id"], "name": row["section_name"]} for row in rows]
+        return [{"id": row["id"], "name": row["section_id"]} for row in rows]
     finally:
         await conn.close()
 
@@ -173,28 +173,28 @@ async def fetch_all_user_sections(owner_user_id: str):
     try:
         rows = await conn.fetch(
             """
-            SELECT id, section_name, COALESCE(emoji, '') AS emoji
+            SELECT id, section_id, COALESCE(emoji, '') AS emoji
             FROM user_profile_sections
             WHERE user_id = $1 AND parent_section_id IS NULL
             ORDER BY id
             """,
             owner_user_id
         )
-        return [{"id": row["id"], "name": row["section_name"], "emoji": row["emoji"]} for row in rows]
+        return [{"id": row["id"], "name": row["section_id"], "emoji": row["emoji"]} for row in rows]
     finally:
         await conn.close()
 
 # ✅ Переключить доступ к разделу (разрешить/запретить)
-async def toggle_access_to_section(owner_user_id: str, viewer_user_id: str, section_name: str):
+async def toggle_access_to_section(owner_user_id: str, viewer_user_id: str, section_id: str):
     conn = await get_connection()
     try:
         # Проверить текущее значение доступа
         current = await conn.fetchval(
             """
             SELECT is_allowed FROM access_rights
-            WHERE owner_user_id = $1 AND viewer_user_id = $2 AND section_name = $3
+            WHERE owner_user_id = $1 AND viewer_user_id = $2 AND section_id = $3
             """,
-            owner_user_id, viewer_user_id, section_name
+            owner_user_id, viewer_user_id, section_id
         )
 
         new_value = not current if current is not None else True
@@ -202,12 +202,12 @@ async def toggle_access_to_section(owner_user_id: str, viewer_user_id: str, sect
         # Вставить или обновить значение
         await conn.execute(
             """
-            INSERT INTO access_rights (owner_user_id, viewer_user_id, section_name, is_allowed)
+            INSERT INTO access_rights (owner_user_id, viewer_user_id, section_id, is_allowed)
             VALUES ($1, $2, $3, $4)
-            ON CONFLICT (owner_user_id, viewer_user_id, section_name)
+            ON CONFLICT (owner_user_id, viewer_user_id, section_id)
             DO UPDATE SET is_allowed = EXCLUDED.is_allowed
             """,
-            owner_user_id, viewer_user_id, section_name, new_value
+            owner_user_id, viewer_user_id, section_id, new_value
         )
 
         return new_value

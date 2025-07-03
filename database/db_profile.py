@@ -34,9 +34,9 @@ async def fetch_section_by_name(user_id: str, name: str, parent_section_id: int 
         if parent_section_id is None:
             row = await conn.fetchrow(
                 """
-                SELECT id, section_name, emoji
+                SELECT id, section_id, emoji
                 FROM user_profile_sections
-                WHERE user_id = $1 AND section_name = $2 AND parent_section_id IS NULL
+                WHERE user_id = $1 AND section_id = $2 AND parent_section_id IS NULL
                 LIMIT 1
                 """,
                 user_id, name
@@ -44,9 +44,9 @@ async def fetch_section_by_name(user_id: str, name: str, parent_section_id: int 
         else:
             row = await conn.fetchrow(
                 """
-                SELECT id, section_name, emoji
+                SELECT id, section_id, emoji
                 FROM user_profile_sections
-                WHERE user_id = $1 AND section_name = $2 AND parent_section_id = $3
+                WHERE user_id = $1 AND section_id = $2 AND parent_section_id = $3
                 LIMIT 1
                 """,
                 user_id, name, parent_section_id
@@ -54,7 +54,7 @@ async def fetch_section_by_name(user_id: str, name: str, parent_section_id: int 
         if row:
             return {
                 "id": row["id"],
-                "name": row["section_name"],
+                "name": row["section_id"],
                 "emoji": row["emoji"]
             }
         return None
@@ -67,9 +67,9 @@ async def fetch_subsection_by_name(user_id: str, name: str, parent_section_id: i
     try:
         row = await conn.fetchrow(
             """
-            SELECT id, section_name, emoji
+            SELECT id, section_id, emoji
             FROM user_profile_sections
-            WHERE user_id = $1 AND section_name = $2 AND parent_section_id = $3
+            WHERE user_id = $1 AND section_id = $2 AND parent_section_id = $3
             LIMIT 1
             """,
             user_id, name, parent_section_id
@@ -77,7 +77,7 @@ async def fetch_subsection_by_name(user_id: str, name: str, parent_section_id: i
         if row:
             return {
                 "id": row["id"],
-                "name": row["section_name"],
+                "name": row["section_id"],
                 "emoji": row["emoji"]
             }
         return None
@@ -90,7 +90,7 @@ async def fetch_sections_by_parent(user_id: str, parent_section_id: int | None):
     try:
         rows = await conn.fetch(
             """
-            SELECT id, section_name, emoji
+            SELECT id, section_id, emoji
             FROM user_profile_sections
             WHERE user_id = $1 AND parent_section_id IS NOT DISTINCT FROM $2
             ORDER BY id
@@ -100,7 +100,7 @@ async def fetch_sections_by_parent(user_id: str, parent_section_id: int | None):
         return [
             {
                 "id": row["id"],
-                "name": row["section_name"],
+                "name": row["section_id"],
                 "emoji": row["emoji"]
             }
             for row in rows
@@ -109,50 +109,50 @@ async def fetch_sections_by_parent(user_id: str, parent_section_id: int | None):
         await conn.close()
 
 # ✅ Вставка раздела, если такого ещё нет (по имени, user_id и parent_id)
-async def insert_section_if_not_exists(user_id: str, section_name: str, emoji: str = None, parent_section_id: int | None = None):
+async def insert_section_if_not_exists(user_id: str, section_id: str, emoji: str = None, parent_section_id: int | None = None):
     conn = await get_connection()
     try:
         existing = await conn.fetchval(
             """
             SELECT id FROM user_profile_sections
-            WHERE user_id = $1 AND section_name = $2 AND COALESCE(parent_section_id, 0) = COALESCE($3, 0)
+            WHERE user_id = $1 AND section_id = $2 AND COALESCE(parent_section_id, 0) = COALESCE($3, 0)
             """,
-            user_id, section_name, parent_section_id
+            user_id, section_id, parent_section_id
         )
         if not existing:
             await conn.execute(
                 """
-                INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id)
+                INSERT INTO user_profile_sections (user_id, section_id, emoji, parent_section_id)
                 VALUES ($1, $2, $3, $4)
                 """,
-                user_id, section_name, emoji, parent_section_id
+                user_id, section_id, emoji, parent_section_id
             )
     finally:
         await conn.close()
 
 # 🗑 Удаление раздела или подраздела (по имени и user_id, с опцией parent_id)
-async def delete_section_by_name(user_id: str, section_name: str, parent_id: int | None = None):
+async def delete_section_by_name(user_id: str, section_id: str, parent_id: int | None = None):
     conn = await get_connection()
     try:
         async with conn.transaction():
             # Получаем ID нужного раздела/подраздела
-            section_name = await conn.fetchval(
+            section_id = await conn.fetchval(
                 """
                 SELECT id FROM user_profile_sections
-                WHERE user_id = $1 AND section_name = $2
+                WHERE user_id = $1 AND section_id = $2
                 AND parent_section_id IS NOT DISTINCT FROM $3
                 """,
-                user_id, section_name, parent_id
+                user_id, section_id, parent_id
             )
 
-            if section_name:
+            if section_id:
                 # Удаляем все вложенные подразделы (если это корневой)
                 await conn.execute(
                     """
                     DELETE FROM user_profile_sections
                     WHERE parent_section_id = $1 AND user_id = $2
                     """,
-                    section_name, user_id
+                    section_id, user_id
                 )
 
                 # Удаляем сам раздел / подраздел
@@ -161,7 +161,7 @@ async def delete_section_by_name(user_id: str, section_name: str, parent_id: int
                     DELETE FROM user_profile_sections
                     WHERE id = $1
                     """,
-                    section_name
+                    section_id
                 )
     finally:
         await conn.close()
@@ -172,7 +172,7 @@ async def copy_default_sections(user_id: str):
     try:
         async with conn.transaction():
             default_roots = await conn.fetch("""
-                SELECT id, section_name, emoji
+                SELECT id, section_id, emoji
                 FROM user_profile_sections
                 WHERE user_id = 'default' AND parent_section_id IS NULL
             """)
@@ -180,8 +180,8 @@ async def copy_default_sections(user_id: str):
             for default_root in default_roots:
                 user_root = await conn.fetchrow("""
                     SELECT id FROM user_profile_sections
-                    WHERE user_id = $1 AND section_name = $2 AND parent_section_id IS NULL
-                """, user_id, default_root["section_name"])
+                    WHERE user_id = $1 AND section_id = $2 AND parent_section_id IS NULL
+                """, user_id, default_root["section_id"])
 
                 if not user_root:
                     continue
@@ -189,50 +189,50 @@ async def copy_default_sections(user_id: str):
                 user_root_id = user_root["id"]
 
                 default_subs = await conn.fetch("""
-                    SELECT section_name, emoji FROM user_profile_sections
+                    SELECT section_id, emoji FROM user_profile_sections
                     WHERE user_id = 'default' AND parent_section_id = $1
                 """, default_root["id"])
 
                 for sub in default_subs:
                     exists = await conn.fetchval("""
                         SELECT 1 FROM user_profile_sections
-                        WHERE user_id = $1 AND section_name = $2 AND parent_section_id = $3
-                    """, user_id, sub["section_name"], user_root_id)
+                        WHERE user_id = $1 AND section_id = $2 AND parent_section_id = $3
+                    """, user_id, sub["section_id"], user_root_id)
 
                     if not exists:
                         await conn.execute("""
-                            INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id)
+                            INSERT INTO user_profile_sections (user_id, section_id, emoji, parent_section_id)
                             VALUES ($1, $2, $3, $4)
-                        """, user_id, sub["section_name"], sub["emoji"], user_root_id)
+                        """, user_id, sub["section_id"], sub["emoji"], user_root_id)
     finally:
         await conn.close()
 
 # ✅ Добавить объект в раздел/подраздел
-async def insert_object(user_id: str, section_name: str, name: str, description: str = None, photo_file_id: str = None):
+async def insert_object(user_id: str, section_id: str, name: str, description: str = None, photo_file_id: str = None):
     conn = await get_connection()
     try:
         await conn.execute(
             """
-            INSERT INTO user_profile_objects (user_id, section_name, object_name, description, photo_file_id)
+            INSERT INTO user_profile_objects (user_id, section_id, object_name, description, photo_file_id)
             VALUES ($1, $2, $3, $4, $5)
             """,
-            user_id, section_name, name, description, photo_file_id
+            user_id, section_id, name, description, photo_file_id
         )
     finally:
         await conn.close()
 
 # 📥 Получить все объекты для раздела или подраздела
-async def fetch_objects_by_section(user_id: str, section_name: str):
+async def fetch_objects_by_section(user_id: str, section_id: str):
     conn = await get_connection()
     try:
         rows = await conn.fetch(
             """
             SELECT id, object_name, description, photo_file_id
             FROM user_profile_objects
-            WHERE user_id = $1 AND section_name = $2
+            WHERE user_id = $1 AND section_id = $2
             ORDER BY created_at
             """,
-            user_id, section_name
+            user_id, section_id
         )
         return [
             {
@@ -261,31 +261,31 @@ async def delete_object_by_id(object_id: int):
         await conn.close()
 
 # ✏️ Переименовать раздел или подраздел по ID
-async def rename_section_by_id(section_name: str, new_name: str):
+async def rename_section_by_id(section_id: str, new_name: str):
     conn = await get_connection()
     try:
         await conn.execute(
             """
             UPDATE user_profile_sections
-            SET section_name = $1
+            SET section_id = $1
             WHERE id = $2
             """,
-            new_name, section_name
+            new_name, section_id
         )
     finally:
         await conn.close()
 
 # ✏ Переименование раздела или подраздела по ID
-async def update_section_name(section_name: str, new_name: str):
+async def update_section_name(section_id: str, new_name: str):
     conn = await get_connection()
     try:
         await conn.execute(
             """
             UPDATE user_profile_sections
-            SET section_name = $1
+            SET section_id = $1
             WHERE id = $2
             """,
-            new_name, section_name
+            new_name, section_id
         )
     finally:
         await conn.close()

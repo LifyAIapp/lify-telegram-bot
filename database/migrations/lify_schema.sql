@@ -14,14 +14,14 @@ DROP TABLE IF EXISTS user_profile_sections CASCADE;
 CREATE TABLE user_profile_sections (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
-    section_name TEXT NOT NULL,
+    section_id TEXT NOT NULL,
     emoji TEXT,
     parent_section_id INTEGER REFERENCES user_profile_sections(id) ON DELETE CASCADE
 );
 
 -- 🔧 Вставка дефолтных разделов и подразделов
 -- Общее
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
+INSERT INTO user_profile_sections (user_id, section_id, emoji, parent_section_id) VALUES
 ('default', 'Общее', '👤', NULL),
 ('default', 'Возраст', '📅', 1),
 ('default', 'Пол', '🚻', 1),
@@ -127,10 +127,10 @@ CREATE TABLE access_rights (
     id SERIAL PRIMARY KEY,
     owner_user_id TEXT NOT NULL,
     viewer_user_id TEXT NOT NULL,
-    section_name TEXT NOT NULL,
+    section_id TEXT NOT NULL,
     is_allowed BOOLEAN NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(owner_user_id, viewer_user_id, section_name)
+    UNIQUE(owner_user_id, viewer_user_id, section_id)
 );
 
 -- === Таблица объектов в разделах профиля ===
@@ -139,7 +139,7 @@ DROP TABLE IF EXISTS user_profile_objects;
 CREATE TABLE user_profile_objects (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
-    section_name INTEGER NOT NULL REFERENCES user_profile_sections(id) ON DELETE CASCADE,
+    section_id INTEGER NOT NULL REFERENCES user_profile_sections(id) ON DELETE CASCADE,
     object_name TEXT NOT NULL,
     description TEXT,
     photo_file_id TEXT,

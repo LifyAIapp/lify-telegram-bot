@@ -11,13 +11,13 @@ confirm_delete_markup = ReplyKeyboardMarkup(
 # Показываем список объектов для удаления
 async def show_objects_for_deletion(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
-    section_name = context.user_data.get("current_section_id")
+    section_id = context.user_data.get("current_section_id")
 
-    if not section_name:
+    if not section_id:
         await update.message.reply_text("⚠️ Не удалось определить подраздел или раздел.")
         return
 
-    objects = await fetch_objects_by_section(user_id, section_name)
+    objects = await fetch_objects_by_section(user_id, section_id)
 
     if not objects:
         await update.message.reply_text("📭 В этом разделе нет объектов для удаления.")
