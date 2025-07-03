@@ -7,7 +7,7 @@ from telegram.ext import Application, MessageHandler, filters, CommandHandler, C
 from telegram_bot.main_menu_handlers.main_menu import welcome, start, handle_menu_choice
 from telegram_bot.profile_handlers.profile_handlers import handle_profile_navigation
 from telegram_bot.friends_handlers.friends_handlers import handle_friends_navigation
-from telegram_bot.events_handlers import handle_events_navigation  # импортируем обработчик событий
+from telegram_bot.events_handlers.events_handlers import handle_events_navigation
 from config import TELEGRAM_TOKEN
 
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
@@ -34,19 +34,24 @@ def setup_application():
     async def handle_mode_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
         mode = context.user_data.get("mode")
         logger.info(f"[ROUTER] mode = {mode}")
-        logger.info(f"[ROUTER] user_data = {context.user_data}")
+        logger.info(f"[ROUTER] user_data keys = {list(context.user_data.keys())}")
 
         if not mode:
+            logger.warning("[ROUTER] Mode не установлен, отправляем сообщение пользователю")
             await update.message.reply_text("❗ Пожалуйста, выберите раздел из главного меню.")
             return
 
         if mode == "profile":
+            logger.info("[ROUTER] Вызов handle_profile_navigation")
             await handle_profile_navigation(update, context)
         elif mode == "friends":
+            logger.info("[ROUTER] Вызов handle_friends_navigation")
             await handle_friends_navigation(update, context)
-        elif mode == "events":  # Добавляем обработку для events
+        elif mode == "events":
+            logger.info("[ROUTER] Вызов handle_events_navigation")
             await handle_events_navigation(update, context)
         else:
+            logger.error(f"[ROUTER] Неизвестный режим: {mode}")
             await update.message.reply_text("⚠ Неизвестный режим.")
 
     application.add_handler(MessageHandler(filters.TEXT | filters.PHOTO, handle_mode_navigation))
