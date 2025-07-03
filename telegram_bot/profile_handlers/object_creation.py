@@ -2,6 +2,7 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from database.db_profile import insert_object
 
+# 🧩 Клавиатуры
 def build_cancel_keyboard():
     return ReplyKeyboardMarkup([["❌ Отмена"]], resize_keyboard=True)
 
@@ -14,6 +15,7 @@ def build_post_object_keyboard():
         ["🏠 Лобби", "🔙 Назад"]
     ], resize_keyboard=True)
 
+# 🚀 Обработчик создания объекта
 async def handle_object_creation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     text = (update.message.text or "").strip()
@@ -21,10 +23,7 @@ async def handle_object_creation(update: Update, context: ContextTypes.DEFAULT_T
 
     # === ОТМЕНА ===
     if text == "❌ Отмена":
-        context.user_data.pop("state", None)
-        context.user_data.pop("new_object_name", None)
-        context.user_data.pop("new_object_description", None)
-        context.user_data.pop("new_object_photo", None)
+        context.user_data.clear()
         await update.message.reply_text("❌ Добавление объекта отменено.", reply_markup=build_post_object_keyboard())
         return "refresh_objects"
 
@@ -70,8 +69,8 @@ async def handle_object_creation(update: Update, context: ContextTypes.DEFAULT_T
     if state == "confirm_object":
         if text == "✅ Сохранить":
             section_id = context.user_data.get("current_section_id")
-            if not section_id:
-                await update.message.reply_text("⚠️ Не удалось определить раздел/подраздел для сохранения.")
+            if not isinstance(section_id, int):
+                await update.message.reply_text("⚠️ Не удалось определить корректный раздел для сохранения.")
                 context.user_data.clear()
                 return "refresh_objects"
 
@@ -83,11 +82,7 @@ async def handle_object_creation(update: Update, context: ContextTypes.DEFAULT_T
                 photo_file_id=context.user_data.get("new_object_photo")
             )
 
-            context.user_data.pop("state", None)
-            context.user_data.pop("new_object_name", None)
-            context.user_data.pop("new_object_description", None)
-            context.user_data.pop("new_object_photo", None)
-
+            context.user_data.clear()
             await update.message.reply_text("✅ Объект успешно добавлен!", reply_markup=build_post_object_keyboard())
             return "refresh_objects"
 

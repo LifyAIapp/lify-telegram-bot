@@ -103,7 +103,7 @@ async def delete_friend(user_id: str, friend_user_id: str):
 # -------------------- ACCESS RIGHTS --------------------
 
 # ✅ Установить право доступа к разделу
-async def set_access_right(owner_user_id: str, viewer_user_id: str, section_id: str, is_allowed: bool):
+async def set_access_right(owner_user_id: str, viewer_user_id: str, section_id: int, is_allowed: bool):
     conn = await get_connection()
     try:
         await conn.execute(
@@ -134,7 +134,7 @@ async def get_allowed_sections(owner_user_id: str, viewer_user_id: str):
         await conn.close()
 
 # ✅ Проверить, доступен ли конкретный раздел
-async def is_section_allowed(owner_user_id: str, viewer_user_id: str, section_id: str) -> bool:
+async def is_section_allowed(owner_user_id: str, viewer_user_id: str, section_id: int) -> bool:
     conn = await get_connection()
     try:
         result = await conn.fetchval(
@@ -148,7 +148,7 @@ async def is_section_allowed(owner_user_id: str, viewer_user_id: str, section_id
     finally:
         await conn.close()
 
-## ✅ Получить список доступных разделов (id + имя)
+# ✅ Получить список доступных разделов (id + имя)
 async def fetch_accessible_sections_for_friend(owner_user_id: str, viewer_user_id: str):
     conn = await get_connection()
     try:
@@ -157,7 +157,7 @@ async def fetch_accessible_sections_for_friend(owner_user_id: str, viewer_user_i
             SELECT s.id, s.section_id
             FROM access_rights ar
             JOIN user_profile_sections s 
-              ON ar.section_id = s.section_id AND s.user_id = ar.owner_user_id
+              ON ar.section_id = s.id AND s.user_id = ar.owner_user_id
             WHERE ar.owner_user_id = $1 AND ar.viewer_user_id = $2 AND ar.is_allowed = TRUE
             """,
             owner_user_id, viewer_user_id
@@ -165,7 +165,6 @@ async def fetch_accessible_sections_for_friend(owner_user_id: str, viewer_user_i
         return [{"id": row["id"], "name": row["section_id"]} for row in rows]
     finally:
         await conn.close()
-
 
 # ✅ Получить все разделы пользователя (для настроек доступа)
 async def fetch_all_user_sections(owner_user_id: str):
@@ -185,10 +184,9 @@ async def fetch_all_user_sections(owner_user_id: str):
         await conn.close()
 
 # ✅ Переключить доступ к разделу (разрешить/запретить)
-async def toggle_access_to_section(owner_user_id: str, viewer_user_id: str, section_id: str):
+async def toggle_access_to_section(owner_user_id: str, viewer_user_id: str, section_id: int):
     conn = await get_connection()
     try:
-        # Проверить текущее значение доступа
         current = await conn.fetchval(
             """
             SELECT is_allowed FROM access_rights
@@ -199,7 +197,6 @@ async def toggle_access_to_section(owner_user_id: str, viewer_user_id: str, sect
 
         new_value = not current if current is not None else True
 
-        # Вставить или обновить значение
         await conn.execute(
             """
             INSERT INTO access_rights (owner_user_id, viewer_user_id, section_id, is_allowed)
@@ -213,11 +210,11 @@ async def toggle_access_to_section(owner_user_id: str, viewer_user_id: str, sect
         return new_value
     finally:
         await conn.close()
+
 # ✅ Найти user_id по @username
 async def get_user_id_by_username(username: str) -> str | None:
     conn = await get_connection()
     try:
-        # Убрать символ @, если есть
         if username.startswith("@"):
             username = username[1:]
 
@@ -231,7 +228,6 @@ async def get_user_id_by_username(username: str) -> str | None:
         return str(result) if result else None
     finally:
         await conn.close()
-
 
 # ✅ Получить имя для отображения
 async def get_display_name(user_id: str) -> str:
