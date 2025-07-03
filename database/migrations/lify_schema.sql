@@ -1,4 +1,3 @@
-
 -- === Таблица пользователей ===
 DROP TABLE IF EXISTS users CASCADE;
 
@@ -8,20 +7,20 @@ CREATE TABLE users (
     display_name TEXT
 );
 
--- === Разделы профиля с иерархией ===
+-- === Таблица разделов профиля (с иерархией) ===
 DROP TABLE IF EXISTS user_profile_sections CASCADE;
 
 CREATE TABLE user_profile_sections (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
-    section_id TEXT NOT NULL,
+    section_name TEXT NOT NULL,
     emoji TEXT,
     parent_section_id INTEGER REFERENCES user_profile_sections(id) ON DELETE CASCADE
 );
 
 -- 🔧 Вставка дефолтных разделов и подразделов
 -- Общее
-INSERT INTO user_profile_sections (user_id, section_id, emoji, parent_section_id) VALUES
+INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
 ('default', 'Общее', '👤', NULL),
 ('default', 'Возраст', '📅', 1),
 ('default', 'Пол', '🚻', 1),
@@ -127,7 +126,7 @@ CREATE TABLE access_rights (
     id SERIAL PRIMARY KEY,
     owner_user_id TEXT NOT NULL,
     viewer_user_id TEXT NOT NULL,
-    section_id TEXT NOT NULL,
+    section_id INTEGER NOT NULL REFERENCES user_profile_sections(id) ON DELETE CASCADE,
     is_allowed BOOLEAN NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     UNIQUE(owner_user_id, viewer_user_id, section_id)
@@ -146,7 +145,7 @@ CREATE TABLE user_profile_objects (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Создание таблицы событий
+-- === Таблица событий ===
 CREATE TABLE IF NOT EXISTS events (
     event_id SERIAL PRIMARY KEY,
     owner_user_id TEXT NOT NULL,
@@ -157,7 +156,7 @@ CREATE TABLE IF NOT EXISTS events (
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
 
--- Создание таблицы участников события (для общих событий)
+-- === Участники событий ===
 CREATE TABLE IF NOT EXISTS event_participants (
     id SERIAL PRIMARY KEY,
     event_id INTEGER NOT NULL REFERENCES events(event_id) ON DELETE CASCADE,
@@ -166,7 +165,7 @@ CREATE TABLE IF NOT EXISTS event_participants (
     UNIQUE(event_id, user_id)
 );
 
--- Создание таблицы вишлистов пользователей
+-- === Таблица вишлистов ===
 CREATE TABLE IF NOT EXISTS wishlists (
     wishlist_id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
