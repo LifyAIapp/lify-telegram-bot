@@ -21,6 +21,9 @@ async def handle_event_creation(update: Update, context: ContextTypes.DEFAULT_TY
             clear_events_context(context)
             await update.message.reply_text("❌ Создание события отменено.")
             return
+        if not text:
+            await update.message.reply_text("⚠️ Название не может быть пустым. Пожалуйста, введите название события:")
+            return
         context.user_data["new_event_title"] = text
         context.user_data["state"] = "awaiting_event_participants"
         await update.message.reply_text(
@@ -37,7 +40,7 @@ async def handle_event_creation(update: Update, context: ContextTypes.DEFAULT_TY
             return
         context.user_data["event_participants"] = []
         if text.lower() != "пропустить":
-            usernames = [u.strip().lstrip("@") for u in text.split(",")]
+            usernames = [u.strip().lstrip("@") for u in text.split(",") if u.strip()]
             for username in usernames:
                 user = await find_user_by_username(username)
                 if user:
@@ -63,7 +66,20 @@ async def handle_event_creation(update: Update, context: ContextTypes.DEFAULT_TY
 
             title = context.user_data.get("new_event_title")
             participants = context.user_data.get("event_participants", [])
-            participant_text = f"{len(participants)} участник(ов)" if participants else "Без участников"
+
+            if participants and len(participants) <= 3:
+                # Получить имена участников для показа
+                from database.db_users import get_display_name  # Предполагается, что есть функция
+                names = []
+                for user_id_participant in participants:
+                    name = await get_display_name(user_id_participant)
+                    names.append(name)
+                participant_text = "Участники: " + ", ".join(names)
+            elif participants:
+                participant_text = f"{len(participants)} участников"
+            else:
+                participant_text = "Без участников"
+
             date_str = date_obj.strftime("%Y-%m-%d")
 
             preview = f"📅 <b>{title}</b>\n📆 Дата: {date_str}\n👥 {participant_text}"
@@ -78,13 +94,13 @@ async def handle_event_creation(update: Update, context: ContextTypes.DEFAULT_TY
 
     # Шаг 4: Подтверждение
     if state == "confirm_event_preview":
-        if text == "✅ Сохранить":
+        if text.lower() == "✅ сохранить":
             event_id = await create_event(
                 owner_user_id=user_id,
                 title=context.user_data["new_event_title"],
                 description="",  # Описание опущено
                 date=context.user_data["new_event_date"],
-                is_shared=True if context.user_data.get("event_participants") else False
+                is_shared=bool(context.user_data.get("event_participants"))
             )
             # Добавляем участников
             for friend_id in context.user_data.get("event_participants", []):
@@ -94,7 +110,7 @@ async def handle_event_creation(update: Update, context: ContextTypes.DEFAULT_TY
             await update.message.reply_text("✅ Событие успешно создано.")
             return
 
-        elif text == "❌ Отменить":
+        elif text.lower() == "❌ отменить":
             clear_events_context(context)
             await update.message.reply_text("❌ Создание события отменено.")
             return
@@ -102,3 +118,6 @@ async def handle_event_creation(update: Update, context: ContextTypes.DEFAULT_TY
         else:
             await update.message.reply_text("⚠️ Пожалуйста, используйте кнопки ниже.")
             return
+
+    # Обработка любых нераспознанных сообщений в процессе создания
+    await update.message.reply_text("⚠️ Пожалуйста, используйте доступные кнопки или команды.")
