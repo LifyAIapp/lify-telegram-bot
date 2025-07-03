@@ -26,3 +26,18 @@ def clear_friends_context(context):
     ]
     for key in keys:
         context.user_data.pop(key, None)
+
+
+def clear_events_context(context):
+    keys = [
+        "state",
+        "new_event_title",
+        "new_event_date",
+        "new_event_description",
+        "new_event_shared",
+        "new_event_id",
+        "event_participants",
+        "wishlist_adding"
+    ]
+    for key in keys:
+        context.user_data.pop(key, None)
