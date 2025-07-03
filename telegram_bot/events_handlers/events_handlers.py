@@ -2,19 +2,27 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from datetime import datetime
 from database.db_events import (
-    create_event, update_event, delete_event,
-    add_event_participant, remove_event_participant,
+    create_event, add_event_participant,
     get_user_events, get_upcoming_events,
-    add_wishlist_item, remove_wishlist_item, get_wishlist
+    get_wishlist, add_wishlist_item
 )
 from telegram_bot.utils.context_cleanup import clear_events_context
 
-# Главное меню раздела События
+# Главное меню раздела События (без "➕ Добавить событие")
 def main_events_menu():
     buttons = [
-        ["📅 Мои события", "➕ Добавить событие"],
+        ["📅 Мои события"],
         ["⏰ Напоминания", "🎁 Вишлист"],
         ["🔙 Назад в меню"]
+    ]
+    return ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+
+# Меню пользователя с событиями и кнопками управления
+def user_events_menu(events):
+    buttons = [[f"{e['title']} — {e['date'].strftime('%Y-%m-%d')}"] for e in events]
+    buttons += [
+        ["➕ Добавить событие"],
+        ["🗑 Удалить событие", "🔙 Назад в меню"]
     ]
     return ReplyKeyboardMarkup(buttons, resize_keyboard=True)
 
@@ -31,26 +39,32 @@ async def show_events_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=main_events_menu()
     )
 
-# Навигация и логика по состояниям раздела
+# Основной обработчик раздела События
 async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = context.user_data.get("state")
     text = update.message.text.strip()
     user_id = str(update.effective_user.id)
 
+    # Главное меню раздела
     if state == "events_menu":
         if text == "📅 Мои события":
             events = await get_user_events(user_id)
             if not events:
                 await update.message.reply_text("У вас пока нет событий.")
+                # Предложить добавить событие или вернуться
+                await update.message.reply_text(
+                    "Хотите добавить событие?",
+                    reply_markup=ReplyKeyboardMarkup([["➕ Добавить событие"], ["🔙 Назад в меню"]], resize_keyboard=True)
+                )
+                context.user_data["state"] = "user_events_menu"
+                return
             else:
-                msg = "\n".join([f"{e['title']} — {e['date'].strftime('%Y-%m-%d')}" for e in events])
-                await update.message.reply_text(f"Ваши события:\n{msg}")
-            return
-
-        if text == "➕ Добавить событие":
-            context.user_data["state"] = "awaiting_event_title"
-            await update.message.reply_text("Введите название события:")
-            return
+                await update.message.reply_text(
+                    "Ваши события:",
+                    reply_markup=user_events_menu(events)
+                )
+                context.user_data["state"] = "user_events_menu"
+                return
 
         if text == "⏰ Напоминания":
             upcoming = await get_upcoming_events(user_id, days_before=3)
@@ -77,6 +91,27 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
             return
 
         await update.message.reply_text("Пожалуйста, выберите пункт из меню.")
+        return
+
+    # Меню пользователя с событиями
+    if state == "user_events_menu":
+        if text == "➕ Добавить событие":
+            context.user_data["state"] = "awaiting_event_title"
+            await update.message.reply_text("Введите название события:")
+            return
+
+        if text == "🗑 Удалить событие":
+            # Тут вызывайте обработчик удаления события из отдельного файла
+            await update.message.reply_text(
+                "Для удаления события перейдите в раздел удаления (в разработке)."
+            )
+            return
+
+        if text == "🔙 Назад в меню":
+            await show_events_menu(update, context)
+            return
+
+        await update.message.reply_text("Пожалуйста, выберите действие кнопками.")
         return
 
     # Ввод названия события
@@ -108,12 +143,11 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
         )
         return
 
-    # Ввод флага общего события
+    # Ввод флага общего события и создание события
     if state == "awaiting_event_shared":
         is_shared = text.lower() == "да"
         context.user_data["new_event_shared"] = is_shared
 
-        # Сохраняем событие
         event_id = await create_event(
             owner_user_id=user_id,
             title=context.user_data["new_event_title"],
@@ -144,9 +178,8 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
         event_id = context.user_data["new_event_id"]
 
         added = 0
+        from database.db_users import find_user_by_username
         for username in usernames:
-            # Тут можно реализовать функцию поиска user_id по username (нужно написать в db_users.py)
-            from database.db_users import find_user_by_username
             user = await find_user_by_username(username)
             if user:
                 await add_event_participant(event_id, user["user_id"])
