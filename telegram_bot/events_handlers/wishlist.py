@@ -1,8 +1,9 @@
-from telegram import Update, ReplyKeyboardMarkup, InputMediaPhoto
+from telegram import Update, ReplyKeyboardMarkup, InputMediaPhoto, ReplyKeyboardRemove
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 from database.db_events import add_wishlist_item, remove_wishlist_item, get_wishlist
 from telegram_bot.utils.context_cleanup import clear_events_context
+import asyncio
 
 # Клавиатуры
 def wishlist_main_keyboard():
@@ -25,6 +26,10 @@ async def show_wishlist_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     user_id = str(update.effective_user.id)
     wishlist = await get_wishlist(user_id)
+
+    # Удаляем предыдущую клавиатуру
+    await update.message.reply_text("⏳ Загрузка меню...", reply_markup=ReplyKeyboardRemove())
+    await asyncio.sleep(0.2)
 
     if wishlist:
         preview = "<b>Ваш вишлист:</b>\n\n"
