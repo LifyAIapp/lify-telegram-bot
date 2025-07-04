@@ -172,5 +172,6 @@ CREATE TABLE IF NOT EXISTS wishlists (
     user_id TEXT NOT NULL,
     item_name TEXT NOT NULL,
     note TEXT,
+    photo_file_id TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );

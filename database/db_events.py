@@ -122,15 +122,15 @@ async def get_event_participants(event_id: int):
 
 # --- WISHLISTS ---
 
-async def add_wishlist_item(user_id: str, item_name: str, note: str = None):
+async def add_wishlist_item(user_id: str, item_name: str, note: str = None, photo_file_id: str = None):
     conn = await get_connection()
     try:
         await conn.execute(
             """
-            INSERT INTO wishlists (user_id, item_name, note)
-            VALUES ($1, $2, $3)
+            INSERT INTO wishlists (user_id, item_name, note, photo_file_id)
+            VALUES ($1, $2, $3, $4)
             """,
-            user_id, item_name, note
+            user_id, item_name, note, photo_file_id
         )
     finally:
         await conn.close()
