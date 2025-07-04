@@ -71,9 +71,7 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
                 return
 
         if text == "⏰ Напоминания":
-            from database.db_events import get_upcoming_events
             upcoming = await get_upcoming_events(user_id, days_ahead=3)
-
             if not upcoming:
                 await update.message.reply_text("Нет приближающихся событий в ближайшие 3 дня.")
             else:
@@ -89,7 +87,9 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
 
         if text == "🔙 Назад в меню":
             clear_events_context(context)
-            await update.message.reply_text("Вы вернулись в главное меню.")
+            context.user_data.pop("mode", None)
+            from telegram_bot.main_menu_handlers.main_menu import show_main_menu
+            await show_main_menu(update, context)
             return
 
         await update.message.reply_text("Пожалуйста, выберите пункт из меню.")
@@ -113,14 +113,12 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
         await update.message.reply_text("Пожалуйста, выберите действие кнопками.")
         return
 
-    # Ввод названия события
     if state == "awaiting_event_title":
         context.user_data["new_event_title"] = text
         context.user_data["state"] = "awaiting_event_date"
         await update.message.reply_text("Введите дату события в формате ГГГГ-ММ-ДД:")
         return
 
-    # Ввод даты события
     if state == "awaiting_event_date":
         try:
             date_obj = datetime.strptime(text, "%Y-%m-%d").date()
@@ -131,7 +129,6 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
             await update.message.reply_text("Некорректный формат даты. Введите в формате ГГГГ-ММ-ДД:")
         return
 
-    # Ввод описания события
     if state == "awaiting_event_description":
         context.user_data["new_event_description"] = text if text else ""
         context.user_data["state"] = "awaiting_event_shared"
@@ -142,7 +139,6 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
         )
         return
 
-    # Подтверждение флага общего события и создание
     if state == "awaiting_event_shared":
         is_shared = text.lower() == "да"
         context.user_data["new_event_shared"] = is_shared
