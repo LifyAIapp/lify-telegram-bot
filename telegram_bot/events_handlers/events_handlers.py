@@ -8,7 +8,7 @@ from database.db_events import (
 )
 from telegram_bot.utils.context_cleanup import clear_events_context
 
-# Главное меню раздела События (без кнопки "➕ Добавить событие")
+# Главное меню раздела События
 def main_events_menu():
     buttons = [
         ["📅 Мои события"],
@@ -17,7 +17,7 @@ def main_events_menu():
     ]
     return ReplyKeyboardMarkup(buttons, resize_keyboard=True)
 
-# Меню пользователя с событиями и кнопками управления
+# Меню пользователя с событиями
 def user_events_menu(events):
     buttons = [[f"{e['title']} — {e['date'].strftime('%Y-%m-%d')}"] for e in events]
     buttons += [
@@ -30,7 +30,7 @@ def user_events_menu(events):
 def confirm_keyboard():
     return ReplyKeyboardMarkup([["✅ Да", "❌ Нет"]], resize_keyboard=True)
 
-# Показываем главное меню раздела
+# Показать главное меню раздела
 async def show_events_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     clear_events_context(context)
     context.user_data["state"] = "events_menu"
@@ -39,11 +39,17 @@ async def show_events_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=main_events_menu()
     )
 
-# Основной обработчик раздела События
+# Обработчик раздела События
 async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = context.user_data.get("state")
     text = update.message.text.strip()
     user_id = str(update.effective_user.id)
+
+    # ✅ Вызов обработчика вишлиста при нужных состояниях
+    if state and state.startswith("wishlist_"):
+        from telegram_bot.events_handlers.wishlist import handle_wishlist_navigation
+        await handle_wishlist_navigation(update, context)
+        return
 
     # Главное меню раздела
     if state == "events_menu":
@@ -51,7 +57,6 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
             events = await get_user_events(user_id)
             if not events:
                 await update.message.reply_text("У вас пока нет событий.")
-                # Предложить добавить событие или вернуться
                 await update.message.reply_text(
                     "Хотите добавить событие?",
                     reply_markup=ReplyKeyboardMarkup([["➕ Добавить событие"], ["🔙 Назад в меню"]], resize_keyboard=True)
@@ -76,18 +81,13 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
             return
 
         if text == "🎁 Вишлист":
-            wishlist = await get_wishlist(user_id)
-            if not wishlist:
-                await update.message.reply_text("Ваш вишлист пуст.")
-            else:
-                msg = "\n".join([f"{item['item_name']} — {item.get('note', '')}" for item in wishlist])
-                await update.message.reply_text(f"Ваш вишлист:\n{msg}")
+            from telegram_bot.events_handlers.wishlist import show_wishlist_menu
+            await show_wishlist_menu(update, context)
             return
 
         if text == "🔙 Назад в меню":
             clear_events_context(context)
             await update.message.reply_text("Вы вернулись в главное меню.")
-            # Здесь можно вызвать главное меню бота
             return
 
         await update.message.reply_text("Пожалуйста, выберите пункт из меню.")
@@ -101,10 +101,7 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
             return
 
         if text == "🗑 Удалить событие":
-            # Здесь необходимо вызвать отдельный обработчик удаления события
-            await update.message.reply_text(
-                "Для удаления события перейдите в раздел удаления (в разработке)."
-            )
+            await update.message.reply_text("Для удаления события перейдите в раздел удаления (в разработке).")
             return
 
         if text == "🔙 Назад в меню":
@@ -114,14 +111,12 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
         await update.message.reply_text("Пожалуйста, выберите действие кнопками.")
         return
 
-    # Ввод названия события
     if state == "awaiting_event_title":
         context.user_data["new_event_title"] = text
         context.user_data["state"] = "awaiting_event_date"
         await update.message.reply_text("Введите дату события в формате ГГГГ-ММ-ДД:")
         return
 
-    # Ввод даты события
     if state == "awaiting_event_date":
         try:
             date_obj = datetime.strptime(text, "%Y-%m-%d").date()
@@ -132,7 +127,6 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
             await update.message.reply_text("Некорректный формат даты. Введите в формате ГГГГ-ММ-ДД:")
         return
 
-    # Ввод описания события
     if state == "awaiting_event_description":
         context.user_data["new_event_description"] = text if text else ""
         context.user_data["state"] = "awaiting_event_shared"
@@ -143,7 +137,6 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
         )
         return
 
-    # Ввод флага общего события и создание события
     if state == "awaiting_event_shared":
         is_shared = text.lower() == "да"
         context.user_data["new_event_shared"] = is_shared
@@ -167,7 +160,6 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
             await update.message.reply_text("✅ Событие успешно создано.")
         return
 
-    # Ввод участников общего события
     if state == "awaiting_add_participants":
         if text.lower() == "пропустить":
             clear_events_context(context)
@@ -189,25 +181,4 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
         await update.message.reply_text(f"✅ Добавлено участников: {added}. Событие создано.")
         return
 
-    # Обработка вишлиста (просмотр и добавление)
-    if state == "wishlist_menu":
-        if text == "➕ Добавить":
-            context.user_data["state"] = "wishlist_adding"
-            await update.message.reply_text("Введите название желаемого подарка:")
-            return
-
-        if text == "🔙 Назад":
-            await show_events_menu(update, context)
-            return
-
-        await update.message.reply_text("Пожалуйста, выберите действие кнопками.")
-        return
-
-    if state == "wishlist_adding":
-        await add_wishlist_item(user_id, text)
-        context.user_data["state"] = "wishlist_menu"
-        await update.message.reply_text("✅ Подарок добавлен в вишлист.")
-        return
-
-    # По умолчанию, если состояние не опознано
     await update.message.reply_text("Пожалуйста, выберите действие из меню.")
