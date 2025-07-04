@@ -1,4 +1,4 @@
-from telegram import Update, ReplyKeyboardMarkup, InputMediaPhoto, ReplyKeyboardRemove
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 from database.db_events import add_wishlist_item, remove_wishlist_item, get_wishlist
@@ -27,18 +27,19 @@ async def show_wishlist_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
     user_id = str(update.effective_user.id)
     wishlist = await get_wishlist(user_id)
 
-    # Удаляем предыдущую клавиатуру
     await update.message.reply_text("⏳ Загрузка меню...", reply_markup=ReplyKeyboardRemove())
     await asyncio.sleep(0.2)
 
     if wishlist:
-        preview = "<b>Ваш вишлист:</b>\n\n"
         for item in wishlist:
-            preview += f"🎁 <b>{item['item_name']}</b>\n"
+            caption = f"🎁 <b>{item['item_name']}</b>"
             if item.get("note"):
-                preview += f"📝 {item['note']}\n"
-            preview += "\n"
-        await update.message.reply_text(preview, reply_markup=wishlist_main_keyboard(), parse_mode=ParseMode.HTML)
+                caption += f"\n📝 {item['note']}"
+            if item.get("photo_file_id"):
+                await update.message.reply_photo(photo=item['photo_file_id'], caption=caption, parse_mode=ParseMode.HTML)
+            else:
+                await update.message.reply_text(caption, parse_mode=ParseMode.HTML)
+        await update.message.reply_text("Что вы хотите сделать?", reply_markup=wishlist_main_keyboard())
     else:
         await update.message.reply_text("📭 Ваш вишлист пуст.", reply_markup=wishlist_main_keyboard())
 
