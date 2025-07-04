@@ -283,3 +283,32 @@ async def rename_section_by_id(section_id: int, new_title: str):
 
 # ✏ Альтернативное название для переименования
 update_section_name = rename_section_by_id
+
+# ✏ Альтернативное название для переименования
+update_section_name = rename_section_by_id
+
+# 🗑 Удалить раздел или подраздел по section_id и user_id
+async def delete_section_by_id(section_id: int, user_id: str):
+    conn = await get_connection()
+    try:
+        async with conn.transaction():
+            # Удалить вложенные подразделы
+            await conn.execute(
+                """
+                DELETE FROM user_profile_sections
+                WHERE parent_section_id = $1 AND user_id = $2
+                """,
+                section_id, user_id
+            )
+
+            # Удалить сам раздел
+            await conn.execute(
+                """
+                DELETE FROM user_profile_sections
+                WHERE id = $1 AND user_id = $2
+                """,
+                section_id, user_id
+            )
+    finally:
+        await conn.close()
+
