@@ -85,3 +85,11 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     else:
         logger.warning(f"[MAIN_MENU] Неизвестная команда: {text}")
         await update.message.reply_text("⚠️ Неизвестная команда. Выберите пункт из меню.")
+
+# 🔙 Возврат в главное меню (вызывается из других разделов)
+async def show_main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["state"] = "main_menu"
+    await update.message.reply_text(
+        "Вы вернулись в главное меню.",
+        reply_markup=main_menu_markup
+    )
