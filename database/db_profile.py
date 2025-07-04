@@ -282,7 +282,7 @@ async def rename_section_by_id(section_id: int, new_title: str):
         await conn.close()
 
 # ✏ Альтернативное название для переименования
-update_section_name = rename_section_by_id
+update_section_title = rename_section_by_id
 
 # ✏ Альтернативное название для переименования
 update_section_name = rename_section_by_id
