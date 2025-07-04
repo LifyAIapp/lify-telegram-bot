@@ -68,8 +68,7 @@ async def handle_event_creation(update: Update, context: ContextTypes.DEFAULT_TY
             participants = context.user_data.get("event_participants", [])
 
             if participants and len(participants) <= 3:
-                # Получить имена участников для показа
-                from database.db_users import get_display_name  # Предполагается, что есть функция
+                from database.db_users import get_display_name
                 names = []
                 for user_id_participant in participants:
                     name = await get_display_name(user_id_participant)
@@ -98,15 +97,14 @@ async def handle_event_creation(update: Update, context: ContextTypes.DEFAULT_TY
             event_id = await create_event(
                 owner_user_id=user_id,
                 title=context.user_data["new_event_title"],
-                description="",  # Описание опущено
+                description="",
                 date=context.user_data["new_event_date"],
                 is_shared=bool(context.user_data.get("event_participants"))
             )
-            # Добавляем участников
             for friend_id in context.user_data.get("event_participants", []):
                 await add_event_participant(event_id, friend_id)
 
-            clear_events_context(context)
+            clear_events_context(context)  # ✅ очищаем состояние
             await update.message.reply_text("✅ Событие успешно создано.")
             return
 
@@ -119,5 +117,5 @@ async def handle_event_creation(update: Update, context: ContextTypes.DEFAULT_TY
             await update.message.reply_text("⚠️ Пожалуйста, используйте кнопки ниже.")
             return
 
-    # Обработка любых нераспознанных сообщений в процессе создания
+    # Обработка любых нераспознанных сообщений
     await update.message.reply_text("⚠️ Пожалуйста, используйте доступные кнопки или команды.")
