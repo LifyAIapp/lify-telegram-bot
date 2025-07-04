@@ -74,7 +74,7 @@ async def get_upcoming_events(user_id: str, days_ahead: int = 3):
             WHERE (owner_user_id = $1 OR (is_shared = TRUE AND event_id IN (
                 SELECT event_id FROM event_participants WHERE user_id = $1
             )))
-            AND date BETWEEN CURRENT_DATE AND CURRENT_DATE + $2
+            AND date BETWEEN CURRENT_DATE AND CURRENT_DATE + make_interval(days => $2)
             ORDER BY date
             """,
             user_id, days_ahead
