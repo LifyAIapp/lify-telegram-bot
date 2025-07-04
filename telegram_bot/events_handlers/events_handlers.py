@@ -3,8 +3,7 @@ from telegram.ext import ContextTypes
 from datetime import datetime
 from database.db_events import (
     create_event, add_event_participant,
-    get_user_events, get_upcoming_events,
-    get_wishlist, add_wishlist_item
+    get_user_events, get_upcoming_events
 )
 from telegram_bot.utils.context_cleanup import clear_events_context
 
@@ -42,10 +41,10 @@ async def show_events_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Обработчик раздела События
 async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = context.user_data.get("state")
-    text = update.message.text.strip()
+    text = update.message.text.strip() if update.message.text else None
     user_id = str(update.effective_user.id)
 
-    # ✅ Вызов обработчика вишлиста при нужных состояниях
+    # ✅ Обработка состояний вишлиста
     if state and state.startswith("wishlist_"):
         from telegram_bot.events_handlers.wishlist import handle_wishlist_navigation
         await handle_wishlist_navigation(update, context)
@@ -72,6 +71,7 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
                 return
 
         if text == "⏰ Напоминания":
+            from database.db_events import get_upcoming_events
             upcoming = await get_upcoming_events(user_id, days_before=3)
             if not upcoming:
                 await update.message.reply_text("Нет приближающихся событий в ближайшие 3 дня.")
@@ -81,6 +81,7 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
             return
 
         if text == "🎁 Вишлист":
+            context.user_data["state"] = "wishlist_menu"
             from telegram_bot.events_handlers.wishlist import show_wishlist_menu
             await show_wishlist_menu(update, context)
             return
@@ -111,12 +112,14 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
         await update.message.reply_text("Пожалуйста, выберите действие кнопками.")
         return
 
+    # Ввод названия события
     if state == "awaiting_event_title":
         context.user_data["new_event_title"] = text
         context.user_data["state"] = "awaiting_event_date"
         await update.message.reply_text("Введите дату события в формате ГГГГ-ММ-ДД:")
         return
 
+    # Ввод даты события
     if state == "awaiting_event_date":
         try:
             date_obj = datetime.strptime(text, "%Y-%m-%d").date()
@@ -127,6 +130,7 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
             await update.message.reply_text("Некорректный формат даты. Введите в формате ГГГГ-ММ-ДД:")
         return
 
+    # Ввод описания события
     if state == "awaiting_event_description":
         context.user_data["new_event_description"] = text if text else ""
         context.user_data["state"] = "awaiting_event_shared"
@@ -137,6 +141,7 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
         )
         return
 
+    # Подтверждение флага общего события и создание
     if state == "awaiting_event_shared":
         is_shared = text.lower() == "да"
         context.user_data["new_event_shared"] = is_shared
