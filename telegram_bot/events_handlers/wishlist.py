@@ -1,5 +1,6 @@
 from telegram import Update, ReplyKeyboardMarkup, InputMediaPhoto
 from telegram.ext import ContextTypes
+from telegram.constants import ParseMode
 from database.db_events import add_wishlist_item, remove_wishlist_item, get_wishlist
 from telegram_bot.utils.context_cleanup import clear_events_context
 
@@ -21,10 +22,20 @@ def skip_keyboard():
 async def show_wishlist_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     clear_events_context(context)
     context.user_data["state"] = "wishlist_menu"
-    await update.message.reply_text(
-        "Ваш вишлист — список желаемых подарков. Выберите действие:",
-        reply_markup=wishlist_main_keyboard()
-    )
+
+    user_id = str(update.effective_user.id)
+    wishlist = await get_wishlist(user_id)
+
+    if wishlist:
+        preview = "<b>Ваш вишлист:</b>\n\n"
+        for item in wishlist:
+            preview += f"🎁 <b>{item['item_name']}</b>\n"
+            if item.get("note"):
+                preview += f"📝 {item['note']}\n"
+            preview += "\n"
+        await update.message.reply_text(preview, reply_markup=wishlist_main_keyboard(), parse_mode=ParseMode.HTML)
+    else:
+        await update.message.reply_text("📭 Ваш вишлист пуст.", reply_markup=wishlist_main_keyboard())
 
 # Обработка навигации и состояний вишлиста
 async def handle_wishlist_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -67,7 +78,7 @@ async def handle_wishlist_navigation(update: Update, context: ContextTypes.DEFAU
             return
         context.user_data["new_wishlist_name"] = text
         context.user_data["state"] = "wishlist_adding_note"
-        await update.message.reply_text("Введите описание подарка или напишите 'Пропустить':", reply_markup=ReplyKeyboardMarkup([["Пропустить", "❌ Отмена"]], resize_keyboard=True))
+        await update.message.reply_text("Введите описание подарка или напишите 'Пропустить':", reply_markup=skip_keyboard())
         return
 
     if state == "wishlist_adding_note":
@@ -83,36 +94,26 @@ async def handle_wishlist_navigation(update: Update, context: ContextTypes.DEFAU
         return
 
     if state == "wishlist_adding_photo":
-        # Пользователь может отправить фото или текст
         if update.message.photo:
-            photo_file = update.message.photo[-1]
-            file_id = photo_file.file_id
+            file_id = update.message.photo[-1].file_id
             context.user_data["new_wishlist_photo"] = file_id
-            context.user_data["state"] = "wishlist_adding_confirm"
-            await update.message.reply_photo(
-                photo=file_id,
-                caption=f"Название: {context.user_data['new_wishlist_name']}\nОписание: {context.user_data.get('new_wishlist_note','')}\n\nПодтвердите добавление подарка:",
-                reply_markup=confirm_keyboard()
-            )
+        elif text and text.lower() == "пропустить":
+            context.user_data["new_wishlist_photo"] = None
+        elif text == "❌ Отмена":
+            await show_wishlist_menu(update, context)
             return
-        elif text:
-            if text.lower() == "пропустить":
-                context.user_data["new_wishlist_photo"] = None
-                context.user_data["state"] = "wishlist_adding_confirm"
-                await update.message.reply_text(
-                    f"Название: {context.user_data['new_wishlist_name']}\nОписание: {context.user_data.get('new_wishlist_note','')}\n\nПодтвердите добавление подарка:",
-                    reply_markup=confirm_keyboard()
-                )
-                return
-            elif text == "❌ Отмена":
-                await show_wishlist_menu(update, context)
-                return
-            else:
-                await update.message.reply_text("Пожалуйста, отправьте фото или напишите 'Пропустить'.")
-                return
         else:
             await update.message.reply_text("Пожалуйста, отправьте фото или напишите 'Пропустить'.")
             return
+
+        context.user_data["state"] = "wishlist_adding_confirm"
+        caption = f"Название: {context.user_data['new_wishlist_name']}\nОписание: {context.user_data.get('new_wishlist_note','')}\n\nПодтвердите добавление подарка:"
+
+        if context.user_data["new_wishlist_photo"]:
+            await update.message.reply_photo(photo=context.user_data["new_wishlist_photo"], caption=caption, reply_markup=confirm_keyboard())
+        else:
+            await update.message.reply_text(caption, reply_markup=confirm_keyboard())
+        return
 
     if state == "wishlist_adding_confirm":
         if text == "✅ Подтвердить":
@@ -120,7 +121,7 @@ async def handle_wishlist_navigation(update: Update, context: ContextTypes.DEFAU
                 user_id=user_id,
                 item_name=context.user_data["new_wishlist_name"],
                 note=context.user_data.get("new_wishlist_note", ""),
-                photo_file_id=context.user_data.get("new_wishlist_photo")  # передайте в функцию db_events для сохранения
+                photo_file_id=context.user_data.get("new_wishlist_photo")
             )
             await update.message.reply_text("✅ Подарок успешно добавлен в вишлист!")
             await show_wishlist_menu(update, context)
@@ -147,5 +148,4 @@ async def handle_wishlist_navigation(update: Update, context: ContextTypes.DEFAU
         await update.message.reply_text("Пожалуйста, выберите подарок из списка или 'Назад'.")
         return
 
-    # Если состояние не опознано
     await update.message.reply_text("Пожалуйста, выберите действие из меню.")
