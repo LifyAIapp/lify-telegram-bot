@@ -13,14 +13,14 @@ DROP TABLE IF EXISTS user_profile_sections CASCADE;
 CREATE TABLE user_profile_sections (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
-    section_name TEXT NOT NULL,
+    section_title TEXT NOT NULL,
     emoji TEXT,
     parent_section_id INTEGER REFERENCES user_profile_sections(id) ON DELETE CASCADE
 );
 
 -- 🔧 Вставка дефолтных разделов и подразделов
 -- Общее
-INSERT INTO user_profile_sections (user_id, section_name, emoji, parent_section_id) VALUES
+INSERT INTO user_profile_sections (user_id, section_title, emoji, parent_section_id) VALUES
 ('default', 'Общее', '👤', NULL),
 ('default', 'Возраст', '📅', 1),
 ('default', 'Пол', '🚻', 1),
@@ -139,6 +139,7 @@ CREATE TABLE user_profile_objects (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
     section_id INTEGER NOT NULL REFERENCES user_profile_sections(id) ON DELETE CASCADE,
+    section_title TEXT, -- 👈 для отображения (актуализируется при переименовании)
     object_name TEXT NOT NULL,
     description TEXT,
     photo_file_id TEXT,

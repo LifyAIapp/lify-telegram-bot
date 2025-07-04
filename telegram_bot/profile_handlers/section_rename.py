@@ -1,6 +1,6 @@
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
-from database.db_profile import update_section_name
+from database.db_profile import update_section_title
 
 confirm_keyboard = ReplyKeyboardMarkup(
     [["✅ Сохранить", "❌ Отмена"]],
@@ -53,7 +53,7 @@ async def handle_section_rename(update: Update, context: ContextTypes.DEFAULT_TY
                 context.user_data.clear()
                 return "refresh_menu"
 
-            await update_section_name(section_id, new_name)
+            await update_section_title(section_id, new_name)
             context.user_data.clear()
             await update.message.reply_text(f"✅ Раздел переименован в: {new_name}")
             return "refresh_menu"
@@ -74,7 +74,7 @@ async def handle_section_rename(update: Update, context: ContextTypes.DEFAULT_TY
                 context.user_data.clear()
                 return "refresh_menu"
 
-            await update_section_name(subsection_id, new_name)
+            await update_section_title(subsection_id, new_name)
             context.user_data.clear()
             await update.message.reply_text(f"✅ Подраздел переименован в: {new_name}")
             return "refresh_menu"

@@ -154,7 +154,7 @@ async def fetch_accessible_sections_for_friend(owner_user_id: str, viewer_user_i
     try:
         rows = await conn.fetch(
             """
-            SELECT s.id, s.section_id
+            SELECT s.id, s.section_title
             FROM access_rights ar
             JOIN user_profile_sections s 
               ON ar.section_id = s.id AND s.user_id = ar.owner_user_id
@@ -162,7 +162,7 @@ async def fetch_accessible_sections_for_friend(owner_user_id: str, viewer_user_i
             """,
             owner_user_id, viewer_user_id
         )
-        return [{"id": row["id"], "name": row["section_id"]} for row in rows]
+        return [{"id": row["id"], "name": row["section_title"]} for row in rows]
     finally:
         await conn.close()
 
@@ -172,14 +172,14 @@ async def fetch_all_user_sections(owner_user_id: str):
     try:
         rows = await conn.fetch(
             """
-            SELECT id, section_id, COALESCE(emoji, '') AS emoji
+            SELECT id, section_title, COALESCE(emoji, '') AS emoji
             FROM user_profile_sections
             WHERE user_id = $1 AND parent_section_id IS NULL
             ORDER BY id
             """,
             owner_user_id
         )
-        return [{"id": row["id"], "name": row["section_id"], "emoji": row["emoji"]} for row in rows]
+        return [{"id": row["id"], "name": row["section_title"], "emoji": row["emoji"]} for row in rows]
     finally:
         await conn.close()
 
