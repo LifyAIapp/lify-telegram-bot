@@ -72,7 +72,8 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
 
         if text == "⏰ Напоминания":
             from database.db_events import get_upcoming_events
-            upcoming = await get_upcoming_events(user_id, days_before=3)
+            upcoming = await get_upcoming_events(user_id, days_ahead=3)
+
             if not upcoming:
                 await update.message.reply_text("Нет приближающихся событий в ближайшие 3 дня.")
             else:
