@@ -175,3 +175,13 @@ CREATE TABLE IF NOT EXISTS wishlists (
     photo_file_id TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
+
+-- === Таблица задач ===
+CREATE TABLE tasks (
+    task_id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    description TEXT NOT NULL,
+    due_date DATE NOT NULL,
+    is_done BOOLEAN DEFAULT FALSE
+);
+
