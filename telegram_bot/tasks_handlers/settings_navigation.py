@@ -1,9 +1,10 @@
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
-from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
-from telegram_bot.tasks_handlers.task_creation import handle_task_creation
-from database.db_tasks import get_tasks_for_date, delete_task  # ✅ добавлен delete_task
 from datetime import date
+
+from telegram_bot.tasks_handlers.task_creation import handle_task_creation
+from database.db_tasks import get_tasks_for_date, delete_task
+
 
 async def handle_settings_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip() if update.message.text else ""
@@ -57,6 +58,8 @@ async def handle_settings_navigation(update: Update, context: ContextTypes.DEFAU
             return
 
         if text == "🔙 Назад":
+            # 🔄 Импорт только здесь, чтобы избежать циклической зависимости
+            from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
             await show_tasks_menu(update, context)
             return
 
@@ -72,6 +75,7 @@ async def handle_settings_navigation(update: Update, context: ContextTypes.DEFAU
     if state == "delete_task_choose":
         if text.lower() == "отмена":
             context.user_data.clear()
+            from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
             await update.message.reply_text("🚫 Удаление отменено.")
             await show_tasks_menu(update, context)
             return
@@ -85,6 +89,7 @@ async def handle_settings_navigation(update: Update, context: ContextTypes.DEFAU
 
         await delete_task(selected_task["id"])
         context.user_data.clear()
+        from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
         await update.message.reply_text("✅ Задача успешно удалена.")
         await show_tasks_menu(update, context)
         return
