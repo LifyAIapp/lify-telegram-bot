@@ -8,7 +8,13 @@ from telegram_bot.main_menu_handlers.main_menu import welcome, start, handle_men
 from telegram_bot.profile_handlers.profile_handlers import handle_profile_navigation
 from telegram_bot.friends_handlers.friends_handlers import handle_friends_navigation
 from telegram_bot.events_handlers.events_handlers import handle_events_navigation
+from telegram_bot.health_handlers.health_handlers import handle_health_navigation  # ✅ Новый импорт
+
 from config import TELEGRAM_TOKEN
+
+# [CYCLE_NOTIFICATIONS] Импорт планировщика и уведомлений
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from telegram_bot.cycle_handlers.cycle_notifications import send_cycle_reminders
 
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 PORT = int(os.environ.get("PORT", 8000))
@@ -50,6 +56,9 @@ def setup_application():
         elif mode == "events":
             logger.info("[ROUTER] Вызов handle_events_navigation")
             await handle_events_navigation(update, context)
+        elif mode == "health":
+            logger.info("[ROUTER] Вызов handle_health_navigation")
+            await handle_health_navigation(update, context)
         else:
             logger.error(f"[ROUTER] Неизвестный режим: {mode}")
             await update.message.reply_text("⚠ Неизвестный режим.")
@@ -73,6 +82,11 @@ async def start_bot():
         url_path="/",
         webhook_url=WEBHOOK_URL,
     )
+
+    # [CYCLE_NOTIFICATIONS] Запуск планировщика уведомлений о цикле
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(send_cycle_reminders, trigger="cron", hour=7)
+    scheduler.start()
 
     await asyncio.Event().wait()
 

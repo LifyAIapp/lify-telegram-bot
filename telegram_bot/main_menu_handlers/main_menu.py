@@ -1,12 +1,17 @@
 import logging
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
+
 from telegram_bot.utils.user_registry import register_user
 from telegram_bot.profile_handlers.profile_handlers import show_profile_menu
 from telegram_bot.friends_handlers.friends_handlers import show_friends_menu
 from telegram_bot.events_handlers.events_handlers import show_events_menu
 from telegram_bot.main_menu_handlers.keyboards import main_menu_keyboard, main_menu_markup
-from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu  # ✅ Новый импорт
+from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
+
+# ✅ Импорт роутеров
+from telegram_bot.cycle_handlers.cycle_handlers import handle_cycle_navigation
+from telegram_bot.health_handlers.health_handlers import show_health_menu, handle_health_navigation  # ✅
 
 logger = logging.getLogger(__name__)
 
@@ -63,17 +68,21 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
         logger.info("[MAIN_MENU] Переход в раздел Задачи")
         await show_tasks_menu(update, context)
 
+    elif text == "🔁 Цикл":
+        context.user_data["mode"] = "cycle"
+        context.user_data["cycle_state"] = "menu"
+        logger.info("[MAIN_MENU] Переход в раздел Цикл")
+        await handle_cycle_navigation(update, context)
+
+    elif text == "🦥️ Здоровье":
+        context.user_data["mode"] = "health"
+        context.user_data["health_state"] = "menu"
+        logger.info("[MAIN_MENU] Переход в раздел Здоровье")
+        await handle_health_navigation(update, context)  # ✅ Новый вызов
+
     elif text == "🧠 Психолог":
         logger.info("[MAIN_MENU] Раздел Психолог пока в разработке")
         await update.message.reply_text("Раздел 🧠 Психолог пока в разработке.")
-
-    elif text == "🦥️ Здоровье":
-        logger.info("[MAIN_MENU] Раздел Здоровье пока в разработке")
-        await update.message.reply_text("Раздел 🦥️ Здоровье пока в разработке.")
-
-    elif text == "🔁 Цикл":
-        logger.info("[MAIN_MENU] Раздел Цикл пока в разработке")
-        await update.message.reply_text("Раздел 🔁 Цикл пока в разработке.")
 
     elif text == "💬 Помощь (FTUE)":
         logger.info("[MAIN_MENU] Вызов помощи FTUE")
