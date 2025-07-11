@@ -2,7 +2,6 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from database.db_tasks import get_tasks_for_date, toggle_task_done
 from datetime import date
-from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
 
 async def handle_task_done_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip() if update.message.text else ""
@@ -21,7 +20,10 @@ async def handle_task_done_selection(update: Update, context: ContextTypes.DEFAU
             return
 
         # Переключить статус
-        await toggle_task_done(selected_task["id"], not selected_task["is_done"])
+        await toggle_task_done(selected_task["id"])
 
         await update.message.reply_text("🔄 Статус задачи обновлён.")
+
+        # 🔄 Импортируем show_tasks_menu здесь, чтобы избежать циклического импорта
+        from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
         await show_tasks_menu(update, context)
