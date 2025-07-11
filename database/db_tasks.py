@@ -60,3 +60,14 @@ async def update_task(task_id: int, new_description: str = None, new_due_date: d
         await conn.execute(query, *values)
     finally:
         await conn.close()
+
+# Удалить задачу по ID
+async def delete_task(task_id: int):
+    conn = await get_connection()
+    try:
+        await conn.execute(
+            "DELETE FROM tasks WHERE id = $1",
+            task_id
+        )
+    finally:
+        await conn.close()
