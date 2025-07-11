@@ -2,11 +2,12 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from database.db_tasks import get_tasks_for_date, update_task
 from datetime import date, datetime
+
 from telegram_bot.tasks_handlers.settings_menu import show_settings_menu
 from telegram_bot.tasks_handlers.calendar import handle_calendar_input
-from telegram_bot.tasks_handlers.settings_navigation import handle_settings_navigation
 from telegram_bot.tasks_handlers.task_creation import handle_task_creation
-from telegram_bot.tasks_handlers.task_done import handle_task_done_selection  # ✅ добавлено
+from telegram_bot.tasks_handlers.task_done import handle_task_done_selection
+from telegram_bot.tasks_handlers.settings_navigation import handle_settings_navigation  # ✅ теперь корректно — импорт без цикла
 
 # Главное меню раздела Задачи
 def tasks_main_menu():
