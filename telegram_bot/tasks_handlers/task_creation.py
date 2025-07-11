@@ -2,7 +2,6 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from database.db_tasks import create_task
 from datetime import datetime
-from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
 
 async def handle_task_creation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip() if update.message.text else ""
@@ -27,6 +26,7 @@ async def handle_task_creation(update: Update, context: ContextTypes.DEFAULT_TYP
         if text.lower() == "отмена":
             context.user_data.clear()
             await update.message.reply_text("🚫 Создание задачи отменено.")
+            from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
             await show_tasks_menu(update, context)
             return
 
@@ -44,4 +44,5 @@ async def handle_task_creation(update: Update, context: ContextTypes.DEFAULT_TYP
 
         context.user_data.clear()
         await update.message.reply_text("✅ Задача успешно создана!")
+        from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
         await show_tasks_menu(update, context)
