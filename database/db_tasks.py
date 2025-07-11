@@ -71,3 +71,18 @@ async def delete_task(task_id: int):
         )
     finally:
         await conn.close()
+
+# Переключить статус выполнения задачи
+async def toggle_task_done(task_id: int):
+    conn = await get_connection()
+    try:
+        await conn.execute(
+            """
+            UPDATE tasks
+            SET is_done = NOT is_done
+            WHERE id = $1
+            """,
+            task_id
+        )
+    finally:
+        await conn.close()
