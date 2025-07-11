@@ -5,3 +5,4 @@ asyncpg
 pymorphy2
 pyspellchecker
 psycopg2-binary
+apscheduler
