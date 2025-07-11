@@ -38,3 +38,12 @@ async def find_user_by_username(username: str):
         return None
     finally:
         await conn.close()
+
+# 📋 Получить список всех user_id
+async def get_all_users():
+    conn = await get_connection()
+    try:
+        rows = await conn.fetch("SELECT DISTINCT user_id FROM users")
+        return [r["user_id"] for r in rows]
+    finally:
+        await conn.close()
