@@ -48,6 +48,33 @@ async def delete_event(event_id: int):
     finally:
         await conn.close()
 
+async def delete_event_by_title(user_id: str, title: str):
+    conn = await get_connection()
+    try:
+        await conn.execute(
+            """
+            DELETE FROM events
+            WHERE owner_user_id = $1 AND title = $2
+            """,
+            user_id, title
+        )
+    finally:
+        await conn.close()
+
+async def get_event_by_title(user_id: str, title: str):
+    conn = await get_connection()
+    try:
+        row = await conn.fetchrow(
+            """
+            SELECT * FROM events
+            WHERE owner_user_id = $1 AND title = $2
+            """,
+            user_id, title
+        )
+        return dict(row) if row else None
+    finally:
+        await conn.close()
+
 async def get_user_events(user_id: str):
     conn = await get_connection()
     try:
@@ -153,32 +180,5 @@ async def get_wishlist(user_id: str):
             user_id
         )
         return [dict(row) for row in rows]
-    finally:
-        await conn.close()
-async def delete_event_by_title(user_id: str, title: str):
-    conn = await get_connection()
-    try:
-        await conn.execute(
-            """
-            DELETE FROM events
-            WHERE owner_user_id = $1 AND title = $2
-            """,
-            user_id, title
-        )
-    finally:
-        await conn.close()
-
-
-async def get_event_by_title(user_id: str, title: str):
-    conn = await get_connection()
-    try:
-        row = await conn.fetchrow(
-            """
-            SELECT * FROM events
-            WHERE owner_user_id = $1 AND title = $2
-            """,
-            user_id, title
-        )
-        return dict(row) if row else None
     finally:
         await conn.close()

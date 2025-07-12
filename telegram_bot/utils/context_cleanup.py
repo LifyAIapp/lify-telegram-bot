@@ -37,7 +37,9 @@ def clear_events_context(context):
         "new_event_shared",
         "new_event_id",
         "event_participants",
-        "wishlist_adding"
+        "wishlist_adding",
+        "deletable_events",
+        "event_to_delete"
     ]
     for key in keys:
         context.user_data.pop(key, None)
