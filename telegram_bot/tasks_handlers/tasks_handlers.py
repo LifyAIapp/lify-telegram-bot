@@ -102,7 +102,7 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
             await update.message.reply_text("⚠️ Задача не найдена. Пожалуйста, выберите из списка.")
             return
 
-        context.user_data["edit_task_id"] = selected_task["id"]
+        context.user_data["edit_task_id"] = selected_task["task_id"]
         context.user_data["tasks_state"] = "edit_task_description"
 
         await update.message.reply_text(
