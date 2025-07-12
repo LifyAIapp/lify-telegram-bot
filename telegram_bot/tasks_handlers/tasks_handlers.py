@@ -87,8 +87,12 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
         if text == "🔙 Назад в меню":
             context.user_data.clear()
             context.user_data.pop("mode", None)
-            from telegram_bot.main_menu_handlers.main_menu import show_main_menu
-            await show_main_menu(update, context)
+            try:
+                from telegram_bot.main_menu_handlers.main_menu import show_main_menu
+                await show_main_menu(update, context)
+            except ImportError as e:
+                await update.message.reply_text("⚠️ Ошибка при возврате в главное меню.")
+                raise e
             return
 
         await update.message.reply_text("Пожалуйста, используйте кнопки ниже.")
