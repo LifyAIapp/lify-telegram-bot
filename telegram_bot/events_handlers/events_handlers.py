@@ -10,6 +10,7 @@ from database.db_events import (
 from database.db_users import find_user_by_username
 from telegram_bot.utils.context_cleanup import clear_events_context
 from telegram_bot.main_menu_handlers.keyboards import main_menu_markup
+from telegram_bot.events_handlers.events_deletion import handle_event_deletion
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +32,6 @@ def user_events_menu(events):
     ]
     return ReplyKeyboardMarkup(buttons, resize_keyboard=True)
 
-# Клавиатура подтверждения
-def confirm_keyboard():
-    return ReplyKeyboardMarkup([["✅ Да", "❌ Нет"]], resize_keyboard=True)
-
 # Показать главное меню раздела События
 async def show_events_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     clear_events_context(context)
@@ -51,6 +48,14 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
     user_id = str(update.effective_user.id)
 
     logger.info(f"[EVENTS] Состояние: {state}, текст: {text}")
+
+    # 🔁 Обработка удаления события (возвращает True / "refresh_menu" при успехе)
+    result = await handle_event_deletion(update, context)
+    if result == "refresh_menu":
+        await show_events_menu(update, context)
+        return
+    elif result:
+        return
 
     if state == "events_menu":
         if text == "📅 Мои события":
@@ -96,10 +101,6 @@ async def handle_events_navigation(update: Update, context: ContextTypes.DEFAULT
         if text == "➕ Добавить событие":
             context.user_data["state"] = "awaiting_event_title"
             await update.message.reply_text("Введите название события:")
-            return
-
-        elif text == "🗑 Удалить событие":
-            await update.message.reply_text("Удаление пока не реализовано.")
             return
 
         elif text == "🏠 Лобби":
