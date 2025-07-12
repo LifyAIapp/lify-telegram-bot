@@ -64,7 +64,6 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     elif text == "📝 Задачи":
         context.user_data["mode"] = "tasks"
-        # 💡 Не устанавливаем tasks_state здесь — логика будет управляться внутри show_tasks_menu
         logger.info("[MAIN_MENU] Переход в раздел Задачи")
         await show_tasks_menu(update, context)
 
@@ -97,3 +96,35 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     else:
         logger.warning(f"[MAIN_MENU] Неизвестная команда: {text}")
         await update.message.reply_text("⚠️ Неизвестная команда. Выберите пункт из меню.")
+
+# 🧭 Центральный роутер по режимам (mode → handler)
+async def handle_mode_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    mode = context.user_data.get("mode")
+    logger.info(f"[ROUTER] Активный режим: {mode}")
+
+    if mode == "profile":
+        from telegram_bot.profile_handlers.profile_handlers import handle_profile_navigation
+        await handle_profile_navigation(update, context)
+
+    elif mode == "friends":
+        from telegram_bot.friends_handlers.friends_handlers import handle_friends_navigation
+        await handle_friends_navigation(update, context)
+
+    elif mode == "events":
+        from telegram_bot.events_handlers.events_handlers import handle_events_navigation
+        await handle_events_navigation(update, context)
+
+    elif mode == "tasks":
+        from telegram_bot.tasks_handlers.tasks_handlers import handle_tasks_navigation
+        await handle_tasks_navigation(update, context)
+
+    elif mode == "cycle":
+        from telegram_bot.cycle_handlers.cycle_handlers import handle_cycle_navigation
+        await handle_cycle_navigation(update, context)
+
+    elif mode == "health":
+        await handle_health_navigation(update, context)
+
+    else:
+        logger.error(f"[ROUTER] Неизвестный режим: {mode}")
+        await update.message.reply_text("⚠️ Ошибка: неизвестный режим. Введите 'выход' для сброса.")
