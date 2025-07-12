@@ -9,7 +9,8 @@ from telegram_bot.profile_handlers.profile_handlers import handle_profile_naviga
 from telegram_bot.friends_handlers.friends_handlers import handle_friends_navigation
 from telegram_bot.events_handlers.events_handlers import handle_events_navigation
 from telegram_bot.health_handlers.health_handlers import handle_health_navigation
-from telegram_bot.config import TELEGRAM_TOKEN
+from config import TELEGRAM_TOKEN
+
 
 # ✅ Импорт navigation-хендлера задач
 from telegram_bot.tasks_handlers.tasks_handlers import handle_tasks_navigation
