@@ -6,7 +6,8 @@ from datetime import date, datetime
 from telegram_bot.tasks_handlers.calendar import handle_calendar_input
 from telegram_bot.tasks_handlers.task_creation import handle_task_creation
 from telegram_bot.tasks_handlers.task_done import handle_task_done_selection
-from telegram_bot.tasks_handlers.settings_navigation import show_settings_menu, handle_settings_navigation  # ✅ заменено
+from telegram_bot.tasks_handlers.settings_navigation import show_settings_menu, handle_settings_navigation
+
 
 # Главное меню раздела Задачи
 def tasks_main_menu():
@@ -17,8 +18,10 @@ def tasks_main_menu():
     ]
     return ReplyKeyboardMarkup(buttons, resize_keyboard=True)
 
+
 # Показать меню задач и задачи на сегодня
 async def show_tasks_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["mode"] = "tasks"  # ✅ фиксируем активный режим
     context.user_data["tasks_state"] = "menu"
     user_id = str(update.effective_user.id)
     today = date.today()
@@ -34,6 +37,7 @@ async def show_tasks_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(msg, parse_mode="Markdown")
 
     await update.message.reply_text("Что хотите сделать?", reply_markup=tasks_main_menu())
+
 
 # Обработчик раздела задач
 async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
