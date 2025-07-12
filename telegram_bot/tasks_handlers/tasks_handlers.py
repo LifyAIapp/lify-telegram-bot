@@ -3,11 +3,13 @@ from telegram.ext import ContextTypes
 from database.db_tasks import get_tasks_for_date, update_task
 from datetime import date, datetime
 
+from telegram_bot.main_menu_handlers.main_menu import show_main_menu
 from telegram_bot.tasks_handlers.settings_menu import show_settings_menu
 from telegram_bot.tasks_handlers.calendar import handle_calendar_input
 from telegram_bot.tasks_handlers.task_creation import handle_task_creation
 from telegram_bot.tasks_handlers.task_done import handle_task_done_selection
-from telegram_bot.tasks_handlers.settings_navigation import handle_settings_navigation  # ✅ теперь корректно — импорт без цикла
+from telegram_bot.tasks_handlers.settings_navigation import handle_settings_navigation
+
 
 # Главное меню раздела Задачи
 def tasks_main_menu():
@@ -20,7 +22,6 @@ def tasks_main_menu():
 
 # Показать меню задач и задачи на сегодня
 async def show_tasks_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["tasks_state"] = "menu"
     user_id = str(update.effective_user.id)
     today = date.today()
 
@@ -74,7 +75,6 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
 
         if text == "🔙 Назад":
             context.user_data.clear()
-            from telegram_bot.main_menu_handlers.main_menu import show_main_menu
             await show_main_menu(update, context)
             return
 

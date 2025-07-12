@@ -11,7 +11,7 @@ from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
 
 # ✅ Импорт роутеров
 from telegram_bot.cycle_handlers.cycle_handlers import handle_cycle_navigation
-from telegram_bot.health_handlers.health_handlers import show_health_menu, handle_health_navigation  # ✅
+from telegram_bot.health_handlers.health_handlers import show_health_menu, handle_health_navigation
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,7 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     elif text == "📝 Задачи":
         context.user_data["mode"] = "tasks"
-        context.user_data["tasks_state"] = "menu"
+        # 💡 Не устанавливаем tasks_state здесь — логика будет управляться внутри show_tasks_menu
         logger.info("[MAIN_MENU] Переход в раздел Задачи")
         await show_tasks_menu(update, context)
 
@@ -78,7 +78,7 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
         context.user_data["mode"] = "health"
         context.user_data["health_state"] = "menu"
         logger.info("[MAIN_MENU] Переход в раздел Здоровье")
-        await handle_health_navigation(update, context)  # ✅ Новый вызов
+        await handle_health_navigation(update, context)
 
     elif text == "🧠 Психолог":
         logger.info("[MAIN_MENU] Раздел Психолог пока в разработке")
