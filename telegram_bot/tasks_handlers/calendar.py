@@ -2,21 +2,23 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from database.db_tasks import get_tasks_for_date
 from datetime import datetime
-import logging
 
+import logging
 logger = logging.getLogger(__name__)
+
+# Кнопка "Назад"
 back_markup = ReplyKeyboardMarkup([["🔙 Назад"]], resize_keyboard=True)
 
+# Обработка ввода даты для просмотра задач
 async def handle_calendar_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
-    user_id = str(update.effective_user.id)
-
     logger.info(f"[CALENDAR] Получен ввод: {text}")
 
-    if text.strip().lower() in ["назад", "🔙 назад"]:
-        logger.info("[CALENDAR] Переход назад в главное меню задач")
+    user_id = str(update.effective_user.id)
+
+    # Назад в главное меню задач
+    if text in ["🔙 Назад", "🔙 Назад в меню"]:
         from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
-        context.user_data["tasks_state"] = "menu"  # Явно вернём state
         await show_tasks_menu(update, context)
         return
 
