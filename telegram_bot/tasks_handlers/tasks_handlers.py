@@ -9,6 +9,7 @@ from telegram_bot.tasks_handlers.task_creation import handle_task_creation
 from telegram_bot.tasks_handlers.task_done import handle_task_done_selection
 from telegram_bot.tasks_handlers.settings_navigation import show_settings_menu, handle_settings_navigation
 from telegram_bot.tasks_handlers.task_deletion import handle_task_deletion
+from telegram_bot.main_menu_handlers.keyboards import main_menu_markup
 
 logger = logging.getLogger(__name__)
 
@@ -17,13 +18,14 @@ def tasks_main_menu():
     buttons = [
         ["⚙ Настройки задачи", "✅ Выполнено"],
         ["📆 Календарь задач"],
-        ["🔙 Назад в меню"]
+        ["🏠 Лобби"]
     ]
     return ReplyKeyboardMarkup(buttons, resize_keyboard=True)
 
+
 # Показать меню задач и задачи на сегодня
 async def show_tasks_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["mode"] = "tasks"
+    context.user_data["mode"] = "tasks"  # ✅ фиксируем активный режим
     context.user_data["tasks_state"] = "menu"
     user_id = str(update.effective_user.id)
     today = date.today()
@@ -40,14 +42,18 @@ async def show_tasks_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("Что хотите сделать?", reply_markup=tasks_main_menu())
 
+
 # Обработчик раздела задач
 async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = context.user_data.get("tasks_state")
     text = update.message.text.strip() if update.message.text else ""
 
+    logger.info(f"[TASKS] Состояние: {state}, текст: {text}")
+
+    # Перехват удаления задач
     result = await handle_task_deletion(update, context)
     if result == "refresh_tasks":
-        logger.info("[TASKS] Обновление меню задач после удаления")
+        logger.info("[TASKS] Обновление задач после удаления")
         await show_tasks_menu(update, context)
         return
     elif result:
@@ -55,12 +61,13 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
 
     if state == "menu":
         if text == "⚙ Настройки задачи":
-            logger.info("[TASKS] Вход в настройки задачи")
+            logger.info("[TASKS] Переход в настройки задач")
             context.user_data["tasks_state"] = "settings_menu"
             await show_settings_menu(update, context)
             return
 
         if text == "✅ Выполнено":
+            logger.info("[TASKS] Показ списка задач для отметки выполненных")
             user_id = str(update.effective_user.id)
             today = date.today()
             tasks = await get_tasks_for_date(user_id, today)
@@ -70,11 +77,10 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
                 return
 
             buttons = [[t["description"]] for t in tasks]
-            buttons.append(["🔙 Назад в меню"])
+            buttons.append(["🏠 Лобби"])
 
             context.user_data["tasks_state"] = "done_choose"
             context.user_data["done_tasks_list"] = tasks
-            logger.info("[TASKS] Переключение статуса выполнения задачи")
             await update.message.reply_text(
                 "Выберите задачу, чтобы переключить её статус выполнения:",
                 reply_markup=ReplyKeyboardMarkup(buttons, resize_keyboard=True)
@@ -82,21 +88,17 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
             return
 
         if text == "📆 Календарь задач":
+            logger.info("[TASKS] Переход в календарь задач")
             context.user_data["tasks_state"] = "calendar_input"
-            logger.info("[TASKS] Вход в календарь задач")
             await update.message.reply_text("📆 Укажите дату в формате ГГГГ-ММ-ДД:")
             return
 
-        if text == "🔙 Назад в меню":
+        if text == "🏠 Лобби":
+            logger.info("[TASKS] Возврат в главное меню")
             context.user_data.clear()
             context.user_data.pop("mode", None)
-            logger.info("[TASKS] Возврат в главное меню")
-            try:
-                from telegram_bot.main_menu_handlers.main_menu import show_main_menu
-                await show_main_menu(update, context)
-            except ImportError as e:
-                await update.message.reply_text("⚠️ Ошибка при возврате в главное меню.")
-                raise e
+            await update.message.reply_text("🏠 Возврат в главное меню.", reply_markup=ReplyKeyboardRemove())
+            await update.message.reply_text("Выберите раздел из меню:", reply_markup=main_menu_markup)
             return
 
         await update.message.reply_text("Пожалуйста, используйте кнопки ниже.")
@@ -125,7 +127,6 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
         context.user_data["edit_task_id"] = selected_task["task_id"]
         context.user_data["tasks_state"] = "edit_task_description"
 
-        logger.info(f"[TASKS] Редактирование задачи ID={selected_task['task_id']}")
         await update.message.reply_text(
             "✏️ Введите новое описание задачи или нажмите 'Пропустить':",
             reply_markup=ReplyKeyboardMarkup([["Пропустить", "Отмена"]], resize_keyboard=True)
@@ -135,6 +136,7 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
     elif state == "edit_task_description":
         if text.lower() == "отмена":
             context.user_data.clear()
+            logger.info("[TASKS] Редактирование отменено")
             await update.message.reply_text("🚫 Редактирование отменено.", reply_markup=ReplyKeyboardRemove())
             await show_tasks_menu(update, context)
             return
@@ -152,6 +154,7 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
     elif state == "edit_task_date":
         if text.lower() == "отмена":
             context.user_data.clear()
+            logger.info("[TASKS] Редактирование отменено")
             await update.message.reply_text("🚫 Редактирование отменено.", reply_markup=ReplyKeyboardRemove())
             await show_tasks_menu(update, context)
             return
@@ -173,15 +176,18 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
             new_due_date=new_due_date
         )
 
-        logger.info(f"[TASKS] Задача ID={task_id} обновлена")
         context.user_data.clear()
+        logger.info("[TASKS] Задача обновлена")
         await update.message.reply_text("✅ Задача успешно обновлена.", reply_markup=ReplyKeyboardRemove())
         await show_tasks_menu(update, context)
         return
 
     elif state == "done_choose":
-        if text == "🔙 Назад в меню":
-            await show_tasks_menu(update, context)
+        if text == "🏠 Лобби":
+            context.user_data.clear()
+            context.user_data.pop("mode", None)
+            await update.message.reply_text("🏠 Возврат в главное меню.", reply_markup=ReplyKeyboardRemove())
+            await update.message.reply_text("Выберите раздел из меню:", reply_markup=main_menu_markup)
             return
 
         await handle_task_done_selection(update, context)
