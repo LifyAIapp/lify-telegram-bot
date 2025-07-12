@@ -3,25 +3,24 @@ from telegram.ext import ContextTypes
 from database.db_tasks import get_tasks_for_date, update_task
 from datetime import date, datetime
 
-from telegram_bot.main_menu_handlers.main_menu import show_main_menu
 from telegram_bot.tasks_handlers.settings_menu import show_settings_menu
 from telegram_bot.tasks_handlers.calendar import handle_calendar_input
 from telegram_bot.tasks_handlers.task_creation import handle_task_creation
 from telegram_bot.tasks_handlers.task_done import handle_task_done_selection
 from telegram_bot.tasks_handlers.settings_navigation import handle_settings_navigation
 
-
 # Главное меню раздела Задачи
 def tasks_main_menu():
     buttons = [
         ["⚙ Настройки задачи", "✅ Выполнено"],
         ["📆 Календарь задач"],
-        ["🔙 Назад"]
+        ["🔙 Назад в меню"]
     ]
     return ReplyKeyboardMarkup(buttons, resize_keyboard=True)
 
 # Показать меню задач и задачи на сегодня
 async def show_tasks_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["tasks_state"] = "menu"
     user_id = str(update.effective_user.id)
     today = date.today()
 
@@ -58,7 +57,7 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
                 return
 
             buttons = [[t["description"]] for t in tasks]
-            buttons.append(["🔙 Назад"])
+            buttons.append(["🔙 Назад в меню"])
 
             context.user_data["tasks_state"] = "done_choose"
             context.user_data["done_tasks_list"] = tasks
@@ -73,8 +72,10 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
             await update.message.reply_text("📆 Укажите дату в формате ГГГГ-ММ-ДД:")
             return
 
-        if text == "🔙 Назад":
+        if text == "🔙 Назад в меню":
             context.user_data.clear()
+            context.user_data.pop("mode", None)
+            from telegram_bot.main_menu_handlers.main_menu import show_main_menu
             await show_main_menu(update, context)
             return
 
@@ -106,10 +107,7 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
 
         await update.message.reply_text(
             "✏️ Введите новое описание задачи или нажмите 'Пропустить':",
-            reply_markup=ReplyKeyboardMarkup(
-                [["Пропустить", "Отмена"]],
-                resize_keyboard=True
-            )
+            reply_markup=ReplyKeyboardMarkup([["Пропустить", "Отмена"]], resize_keyboard=True)
         )
         return
 
@@ -126,10 +124,7 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
         context.user_data["tasks_state"] = "edit_task_date"
         await update.message.reply_text(
             "📆 Введите новую дату в формате ГГГГ-ММ-ДД или нажмите 'Пропустить':",
-            reply_markup=ReplyKeyboardMarkup(
-                [["Пропустить", "Отмена"]],
-                resize_keyboard=True
-            )
+            reply_markup=ReplyKeyboardMarkup([["Пропустить", "Отмена"]], resize_keyboard=True)
         )
         return
 
@@ -163,7 +158,7 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
         return
 
     elif state == "done_choose":
-        if text == "🔙 Назад":
+        if text == "🔙 Назад в меню":
             await show_tasks_menu(update, context)
             return
 
