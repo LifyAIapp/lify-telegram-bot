@@ -10,8 +10,7 @@ from database.db_events import (
 from database.db_users import find_user_by_username
 from telegram_bot.utils.context_cleanup import clear_events_context
 from telegram_bot.main_menu_handlers.keyboards import main_menu_markup
-from telegram_bot.events_handlers.events_deletion import handle_event_deletion
-
+from telegram_bot.events_handlers.event_deletion import handle_event_deletion
 logger = logging.getLogger(__name__)
 
 # Главное меню раздела События
