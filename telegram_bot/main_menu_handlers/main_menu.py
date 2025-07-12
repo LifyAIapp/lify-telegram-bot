@@ -2,16 +2,18 @@ import logging
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 
+# 📦 Импорт утилит и меню
 from telegram_bot.utils.user_registry import register_user
+from telegram_bot.main_menu_handlers.keyboards import main_menu_markup
+
+# 📦 Импорт разделов
 from telegram_bot.profile_handlers.profile_handlers import show_profile_menu
 from telegram_bot.friends_handlers.friends_handlers import show_friends_menu
 from telegram_bot.events_handlers.events_handlers import show_events_menu
-from telegram_bot.main_menu_handlers.keyboards import main_menu_keyboard, main_menu_markup
 from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
 
-# ✅ Импорт роутеров
 from telegram_bot.cycle_handlers.cycle_handlers import handle_cycle_navigation
-from telegram_bot.health_handlers.health_handlers import show_health_menu, handle_health_navigation
+from telegram_bot.health_handlers.health_handlers import handle_health_navigation
 
 logger = logging.getLogger(__name__)
 
