@@ -2,16 +2,14 @@ import logging
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 
-# 📦 Импорт утилит и меню
+# 📦 Импорт утилит и клавиатуры главного меню
 from telegram_bot.utils.user_registry import register_user
 from telegram_bot.main_menu_handlers.keyboards import main_menu_markup
 
-# 📦 Импорт разделов
+# 📦 Импорт разделов (только тех, где нет циклического импорта)
 from telegram_bot.profile_handlers.profile_handlers import show_profile_menu
 from telegram_bot.friends_handlers.friends_handlers import show_friends_menu
 from telegram_bot.events_handlers.events_handlers import show_events_menu
-from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
-
 from telegram_bot.cycle_handlers.cycle_handlers import handle_cycle_navigation
 from telegram_bot.health_handlers.health_handlers import handle_health_navigation
 
@@ -33,6 +31,7 @@ async def welcome(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ▶️ Обработка команды /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logger.info("[START] Пользователь начал работу с ботом")
     await update.message.reply_text(
         "📢 Добро пожаловать в Lify!\n\n🔹 Выберите раздел из меню ниже:",
         reply_markup=main_menu_markup
@@ -67,6 +66,8 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif text == "📝 Задачи":
         context.user_data["mode"] = "tasks"
         logger.info("[MAIN_MENU] Переход в раздел Задачи")
+        # 🔁 Локальный импорт во избежание циклических импортов
+        from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
         await show_tasks_menu(update, context)
 
     elif text == "🔁 Цикл":
@@ -103,6 +104,7 @@ async def handle_menu_choice(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def handle_mode_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mode = context.user_data.get("mode")
     logger.info(f"[ROUTER] Активный режим: {mode}")
+    logger.info(f"[ROUTER] user_data = {context.user_data}")
 
     if mode == "profile":
         from telegram_bot.profile_handlers.profile_handlers import handle_profile_navigation
