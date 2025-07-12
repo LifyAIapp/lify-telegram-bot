@@ -7,7 +7,7 @@ async def get_tasks_for_date(user_id: str, target_date: date):
     try:
         rows = await conn.fetch(
             """
-            SELECT id, description, due_date, is_done
+            SELECT task_id, description, due_date, is_done
             FROM tasks
             WHERE user_id = $1 AND due_date = $2
             ORDER BY due_date
@@ -54,19 +54,19 @@ async def update_task(task_id: int, new_description: str = None, new_due_date: d
         query = f"""
             UPDATE tasks
             SET {', '.join(fields)}
-            WHERE id = ${len(values)}
+            WHERE task_id = ${len(values)}
         """
 
         await conn.execute(query, *values)
     finally:
         await conn.close()
 
-# Удалить задачу по ID
+# Удалить задачу по task_id
 async def delete_task(task_id: int):
     conn = await get_connection()
     try:
         await conn.execute(
-            "DELETE FROM tasks WHERE id = $1",
+            "DELETE FROM tasks WHERE task_id = $1",
             task_id
         )
     finally:
@@ -80,7 +80,7 @@ async def toggle_task_done(task_id: int):
             """
             UPDATE tasks
             SET is_done = NOT is_done
-            WHERE id = $1
+            WHERE task_id = $1
             """,
             task_id
         )
