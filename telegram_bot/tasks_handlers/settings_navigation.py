@@ -5,7 +5,21 @@ from datetime import date
 from telegram_bot.tasks_handlers.task_creation import handle_task_creation
 from database.db_tasks import get_tasks_for_date, delete_task
 
+# Клавиатура настроек задач
+def settings_keyboard():
+    buttons = [
+        ["➕ Создать задачу"],
+        ["✏️ Редактировать задачу"],
+        ["🗑 Удалить задачу"],
+        ["🔙 Назад"]
+    ]
+    return ReplyKeyboardMarkup(buttons, resize_keyboard=True)
 
+# Показать меню настроек задач
+async def show_settings_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("⚙ Выберите действие с задачами:", reply_markup=settings_keyboard())
+
+# Обработка навигации по настройкам задач
 async def handle_settings_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip() if update.message.text else ""
     state = context.user_data.get("tasks_state")
@@ -58,7 +72,6 @@ async def handle_settings_navigation(update: Update, context: ContextTypes.DEFAU
             return
 
         if text == "🔙 Назад":
-            # 🔄 Импорт только здесь, чтобы избежать циклической зависимости
             from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
             await show_tasks_menu(update, context)
             return
@@ -87,7 +100,7 @@ async def handle_settings_navigation(update: Update, context: ContextTypes.DEFAU
             await update.message.reply_text("⚠️ Задача не найдена. Пожалуйста, выберите из списка.")
             return
 
-        await delete_task(selected_task["id"])
+        await delete_task(selected_task["task_id"])
         context.user_data.clear()
         from telegram_bot.tasks_handlers.tasks_handlers import show_tasks_menu
         await update.message.reply_text("✅ Задача успешно удалена.")
