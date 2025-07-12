@@ -1,6 +1,6 @@
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
-from database.db_tasks import get_tasks_for_date, update_task
+from database.db_tasks import get_tasks_for_date, update_task, delete_task
 from datetime import date, datetime
 
 from telegram_bot.tasks_handlers.calendar import handle_calendar_input
@@ -31,7 +31,8 @@ async def show_tasks_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not tasks:
         await update.message.reply_text("📝 У вас пока нет задач на сегодня.")
     else:
-        msg = "📋 *Ваши задачи на сегодня:*\n" + "\n".join(
+        msg = "📋 *Ваши задачи на сегодня:*
+" + "\n".join(
             [f"• {t['description']}" + (" ✅" if t['is_done'] else "") for t in tasks]
         )
         await update.message.reply_text(msg, parse_mode="Markdown")
@@ -65,7 +66,7 @@ async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_
             context.user_data["tasks_state"] = "done_choose"
             context.user_data["done_tasks_list"] = tasks
             await update.message.reply_text(
-                "Выберите задачу, чтобы переключить её статус выполнения:",
+                "Выберите задачу, чтобы переключить ёё статус выполнения:",
                 reply_markup=ReplyKeyboardMarkup(buttons, resize_keyboard=True)
             )
             return
