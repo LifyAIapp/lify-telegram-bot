@@ -7,6 +7,7 @@ from telegram_bot.tasks_handlers.calendar import handle_calendar_input
 from telegram_bot.tasks_handlers.task_creation import handle_task_creation
 from telegram_bot.tasks_handlers.task_done import handle_task_done_selection
 from telegram_bot.tasks_handlers.settings_navigation import show_settings_menu, handle_settings_navigation
+from telegram_bot.tasks_handlers.task_deletion import handle_task_deletion
 
 
 # Главное меню раздела Задачи
@@ -43,6 +44,14 @@ async def show_tasks_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_tasks_navigation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = context.user_data.get("tasks_state")
     text = update.message.text.strip() if update.message.text else ""
+
+    # Перехват удаления задач
+    result = await handle_task_deletion(update, context)
+    if result == "refresh_tasks":
+        await show_tasks_menu(update, context)
+        return
+    elif result:
+        return
 
     if state == "menu":
         if text == "⚙ Настройки задачи":

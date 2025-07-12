@@ -72,6 +72,22 @@ async def delete_task(task_id: int):
     finally:
         await conn.close()
 
+# Получить задачу по описанию (для подтверждения удаления)
+async def get_task_by_description(user_id: str, description: str):
+    conn = await get_connection()
+    try:
+        row = await conn.fetchrow(
+            """
+            SELECT task_id, description, due_date, is_done
+            FROM tasks
+            WHERE user_id = $1 AND description = $2
+            """,
+            user_id, description
+        )
+        return dict(row) if row else None
+    finally:
+        await conn.close()
+
 # Переключить статус выполнения задачи
 async def toggle_task_done(task_id: int):
     conn = await get_connection()
