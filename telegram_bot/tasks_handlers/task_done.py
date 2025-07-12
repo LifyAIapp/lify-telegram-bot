@@ -20,7 +20,7 @@ async def handle_task_done_selection(update: Update, context: ContextTypes.DEFAU
             return
 
         # Переключить статус
-        await toggle_task_done(selected_task["id"])
+        await toggle_task_done(selected_task["task_id"])
 
         await update.message.reply_text("🔄 Статус задачи обновлён.")
 
